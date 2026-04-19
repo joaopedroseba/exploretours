@@ -2,1052 +2,848 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Explore Atins – iOS App Design</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Explore Atins</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <style>
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%;font-family:'Outfit',sans-serif;overflow-x:auto;overflow-y:hidden}
-  body{background:radial-gradient(ellipse at 20% 60%,rgba(30,110,138,.18) 0%,transparent 55%),radial-gradient(ellipse at 80% 10%,rgba(224,123,58,.1) 0%,transparent 50%),#090f14}
-  ::-webkit-scrollbar{height:5px;width:5px}
-  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
-  .tweaks-panel{position:fixed;bottom:24px;right:24px;background:rgba(9,15,20,.97);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 20px 20px;z-index:9999;backdrop-filter:blur(16px);min-width:230px;display:none;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  .tweaks-panel.open{display:block}
-  .tweaks-ttl{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:14px}
-  .tweak-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-  .tweak-lbl{font-size:12px;color:rgba(255,255,255,.6)}
-  .tweak-sel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.85);border-radius:8px;padding:5px 9px;font-size:11px;font-family:'Outfit',sans-serif;outline:none;cursor:pointer}
+  html,body,#root{height:100%;font-family:'Outfit',sans-serif}
+  body{background:radial-gradient(ellipse at 25% 60%,rgba(30,110,138,.18) 0%,transparent 55%),#090f14;display:flex;align-items:center;justify-content:center}
+  @media(max-width:430px){body{background:#090f14}}
+  ::-webkit-scrollbar{width:0;height:0}
+
+  .phone-shell{
+    width:393px;height:852px;border-radius:46px;overflow:hidden;
+    background:#faf5ec;position:relative;
+    box-shadow:0 0 0 12px #181820,0 0 0 13px rgba(255,255,255,.07),0 60px 120px rgba(0,0,0,.8);
+  }
+  @media(max-width:430px){
+    .phone-shell{width:100vw;height:100dvh;border-radius:0;box-shadow:none}
+  }
+
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;background:#faf5ec;overflow:hidden}
+  .screen-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .screen-scroll::-webkit-scrollbar{width:0}
+
+  @keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  @keyframes slideInLeft{from{transform:translateX(-30%);opacity:.5}to{transform:translateX(0);opacity:1}}
+  .slide-in{animation:slideInRight .3s cubic-bezier(.4,0,.2,1) both}
+  .slide-back{animation:slideInLeft .25s cubic-bezier(.4,0,.2,1) both}
+
+  .island{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:122px;height:36px;background:#0d1a1e;border-radius:20px;z-index:60;pointer-events:none}
+  .status-bar{height:52px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 8px;flex-shrink:0;position:relative;z-index:10}
+  .bottom-bar{position:absolute;bottom:0;left:0;right:0;height:84px;background:rgba(250,245,236,.93);backdrop-filter:blur(20px);border-top:1px solid #d4c4a0;display:flex;align-items:flex-start;padding:10px 8px 0;z-index:20}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+  .tab-icon{width:44px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:14px;font-size:18px}
+  .tab-lbl{font-size:9.5px;font-weight:400;color:#6a8a9a}
+  .tab-lbl.on{font-weight:700}
+
+  button{cursor:pointer;font-family:'Outfit',sans-serif}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
 
-const { useState, useEffect } = React;
+// ── PALETTE ─────────────────────────────────────────────────
+const SAND='#f0e3c8',SANDL='#faf5ec',SANDD='#d4c4a0',
+      TEAL='#1e6e8a',TEALL='#4a9cb5',TEALP='#daeef6',
+      ORANGE='#e07b3a',DARK='#0d1f27',MUTED='#6a8a9a',WHITE='#fefaf5';
 
-// ── PALETTE ─────────────────────────────────────────────────────────
-const SAND = '#f0e3c8',SANDL = '#faf5ec',SANDD = '#d4c4a0',
-  TEAL = '#1e6e8a',TEALL = '#4a9cb5',TEALP = '#daeef6',
-  ORANGE = '#e07b3a',DARK = '#0d1f27',MUTED = '#6a8a9a',WHITE = '#fefaf5';
+// ── REVIEWS ──────────────────────────────────────────────────
+const TA_REVIEWS=[
+  {name:'Gabriel A.',avatar:'G',date:'Há 4 dias',title:'Uma das melhores experiências',text:'Uma das melhores experiências que tive em Atins, desde o atendimento até o serviço. Irei mais vezes!',stars:5},
+  {name:'Kioatins',avatar:'K',date:'Jan 2026',title:'Atendimento atencioso',text:'Adorei o atendimento e o roteiro proposto pela equipe. Fiz até mais passeios do que eu tinha planejado. Incrível, sempre preocupados e atenciosos.',stars:5},
+  {name:'Nathalia F.',avatar:'N',date:'Jan 2026',title:'Passeio noturno nas dunas',text:'Foi incrível! Tudo planejado e organizado pela Explore. Uma experiência maravilhosa que todos da família adoraram.',stars:5},
+  {name:'Tristan R.',avatar:'T',date:'Dez 2025',title:'Expérience inoubliable',text:'Organisation parfaite, guides attentionnés. Les dunes de nuit sous les étoiles — une magie absolue. Je recommande vivement!',stars:5},
+];
 
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{ "location": "atins", "featuredTour": "lagoa-lua" } /*EDITMODE-END*/;
-
-// ── TRIPADVISOR REVIEWS ──────────────────────────────────────────────
-const TA_REVIEWS = [
-{ name: 'Gabriel A.', avatar: 'G', date: 'Há 4 dias', title: 'Uma das melhores experiências',
-  text: 'Uma das melhores experiências que tive em Atins, desde o atendimento até o serviço. Irei mais vezes!', stars: 5 },
-{ name: 'Kioatins', avatar: 'K', date: 'Jan 2026', title: 'Atendimento atencioso',
-  text: 'Adorei o atendimento e o roteiro proposto pela equipe. Fiz até mais passeios do que eu tinha planejado. Incrível, sempre preocupados e atenciosos.', stars: 5 },
-{ name: 'Nathalia F.', avatar: 'N', date: 'Jan 2026', title: 'Passeio noturno nas dunas',
-  text: 'Foi incrível! Tudo planejado e organizado pela Explore. Uma experiência maravilhosa que todos da família adoraram.', stars: 5 },
-{ name: 'Tristan R.', avatar: 'T', date: 'Dez 2025', title: 'Expérience inoubliable',
-  text: 'Organisation parfaite, guides attentionnés. Les dunes de nuit sous les étoiles — une magie absolue. Je recommande vivement!', stars: 5 }];
-
-
-// ── CONCIERGE DATA ───────────────────────────────────────────────────
-const CONCIERGE = {
-  atins: {
-    pousadas: [
-    { name: 'Pousada Rancho dos Lençóis', desc: 'Rústica e encantadora, beira do Rio Preguiças', type: '🏡', cupom: 'EXPLORE10' },
-    { name: 'Altos de Atins', desc: 'Vista panorâmica das dunas, café da manhã incluso', type: '🏡', cupom: 'EXPLORE10' }],
-
-    restaurantes: [
-    { name: 'Restaurante da Vovó', desc: 'Culinária maranhense autêntica — arroz de cuxá e peixe fresco', type: '🍽️', cupom: 'EXPLORE10' },
-    { name: 'Bar do Seu Zé', desc: 'Frutos do mar e caipirinhas de fruta nativa', type: '🍹', cupom: 'EXPLOREDRINK' }]
-
+// ── CONCIERGE ─────────────────────────────────────────────────
+const CONCIERGE={
+  atins:{
+    pousadas:[
+      {name:'Pousada Rancho dos Lençóis',desc:'Rústica e encantadora, beira do Rio Preguiças',type:'🏡',cupom:'EXPLORE10'},
+      {name:'Altos de Atins',desc:'Vista panorâmica das dunas, café da manhã incluso',type:'🏡',cupom:'EXPLORE10'},
+    ],
+    restaurantes:[
+      {name:'Restaurante da Vovó',desc:'Culinária maranhense autêntica — arroz de cuxá e peixe fresco',type:'🍽️',cupom:'EXPLORE10'},
+      {name:'Bar do Seu Zé',desc:'Frutos do mar e caipirinhas de fruta nativa',type:'🍹',cupom:'EXPLOREDRINK'},
+    ],
   },
-  santoAmaro: {
-    pousadas: [
-    { name: 'Pousada Lençóis Selvagens', desc: 'Estrutura simples na natureza, trilhas a pé', type: '🏕️', cupom: 'EXPLORE10' },
-    { name: 'Casa dos Doutores', desc: 'Charmosa e aconchegante no centrinho', type: '🏡', cupom: 'EXPLORE10' }],
-
-    restaurantes: [
-    { name: 'Cantina do Parque', desc: 'Marmitex caseiro, preço justo e muito sabor', type: '🍽️', cupom: 'EXPLORE10' },
-    { name: 'Barraca da Comunidade', desc: 'Lanches e sucos naturais na saída dos passeios', type: '🥤', cupom: 'EXPLOREDRINK' }]
-
+  santoAmaro:{
+    pousadas:[
+      {name:'Pousada Lençóis Selvagens',desc:'Estrutura simples na natureza, trilhas a pé',type:'🏕️',cupom:'EXPLORE10'},
+      {name:'Casa dos Doutores',desc:'Charmosa e aconchegante no centrinho',type:'🏡',cupom:'EXPLORE10'},
+    ],
+    restaurantes:[
+      {name:'Cantina do Parque',desc:'Marmitex caseiro, preço justo e muito sabor',type:'🍽️',cupom:'EXPLORE10'},
+      {name:'Barraca da Comunidade',desc:'Lanches e sucos naturais na saída dos passeios',type:'🥤',cupom:'EXPLOREDRINK'},
+    ],
   },
-  barreirinhas: {
-    pousadas: [
-    { name: 'Pousada Encantes do Nordeste', desc: 'Melhor custo-benefício da cidade, piscina', type: '🏊', cupom: 'EXPLORE10' },
-    { name: 'Rio Preguiças Resort', desc: 'Estrutura completa com vista para o rio', type: '🌊', cupom: 'EXPLORE10' }],
-
-    restaurantes: [
-    { name: 'Restaurante Buriti', desc: 'Gastronomia maranhense refinada, ambiente agradável', type: '🍽️', cupom: 'EXPLORE10' },
-    { name: 'Pizzaria do Farol', desc: 'Ótima pizza e hambúrgueres artesanais', type: '🍕', cupom: 'EXPLORE10' }]
-
-  }
+  barreirinhas:{
+    pousadas:[
+      {name:'Pousada Encantes do Nordeste',desc:'Melhor custo-benefício da cidade, piscina',type:'🏊',cupom:'EXPLORE10'},
+      {name:'Rio Preguiças Resort',desc:'Estrutura completa com vista para o rio',type:'🌊',cupom:'EXPLORE10'},
+    ],
+    restaurantes:[
+      {name:'Restaurante Buriti',desc:'Gastronomia maranhense refinada, ambiente agradável',type:'🍽️',cupom:'EXPLORE10'},
+      {name:'Pizzaria do Farol',desc:'Ótima pizza e hambúrgueres artesanais',type:'🍕',cupom:'EXPLORE10'},
+    ],
+  },
 };
 
-// ── DATA ─────────────────────────────────────────────────────────────
-const LOCATIONS = {
-  atins: {
-    id: 'atins', name: 'Atins', state: 'MA', score: 9.4,
-    accent: '#e07b3a', accentLight: '#f5a872', accentPale: '#fdeee3',
-    grad: 'linear-gradient(145deg,#1a3d52 0%,#1e6e8a 50%,#e07b3a 100%)',
-    heroGrad: 'linear-gradient(160deg,#0d2d3d 0%,#1a5570 40%,#2e8fa8 70%,#c4a96a 100%)',
-    tags: ['Praia Paradisíaca', 'Kitesurf', 'Autêntica', 'Pôr do Sol Único'],
-    desc: 'A base mais completa e autêntica dos Lençóis. Sem asfalto e com alma genuína.',
-    icon: '🌊',
-    tours: [
-    { id: 'lagoa-lua', name: 'Lagoa da Lua', cat: '4×4', dur: 'Meio Dia', badge: 'BEST SELLER',
-      priceShared: null, pricePrivate: 1200, icon: '🌙',
-      grad: 'linear-gradient(145deg,#1e5f7a,#2e8fa8,#c4a96a)',
-      photo: 'https://exploreatins.com/wp-content/uploads/2026/01/DJI_0896-scaled.jpg',
-      photoPos: 'center 55%',
-      desc: 'A queridinha de Atins! Lagoa de beleza única com águas cristalinas e dunas douradas ao redor — o passeio mais procurado de toda a região.',
-      tags: ['Até 8 pax', 'Dunas Douradas', 'Privativo'], times: ['09:00', '15:00'] },
-    { id: 'lagoa-azul-bonita', name: 'Lagoa Azul & Lagoa Bonita', cat: '4×4', dur: 'Aventura', badge: 'IMPERDÍVEL',
-      priceShared: null, pricePrivate: 1800, icon: '💎',
-      grad: 'linear-gradient(145deg,#1a4f6b,#2e7fa3,#a8e4f0)',
-      photo: 'https://exploreatins.com/wp-content/uploads/2026/02/lagoa-bonita.png',
-      photoPos: 'center center',
-      desc: 'As duas lagoas mais famosas de todo o Lençóis. Inclui a subida à duna mais alta do parque — vista panorâmica 360° de tirar o fôlego.',
-      tags: ['Duna Mais Alta', 'Vista 360°', 'Privativo'], times: ['09:00', '14:00'] },
-    { id: 'canto-atins', name: 'Circuito Canto de Atins', cat: '4×4', dur: 'Meio Dia',
-      priceShared: 200, pricePrivate: 1000, icon: '🌅',
-      grad: 'linear-gradient(145deg,#c4831a,#e8a840,#f5e08a)',
-      photo: 'https://exploreatins.com/wp-content/uploads/2025/09/1.png',
-      photoPos: 'center 50%',
-      desc: 'Percurso próximo ao mar com vista para o litoral de Atins. Lagoa das Sete Mulheres com a duna perfeita para o pôr do sol.',
-      tags: ['6+ Lagoas', 'Pôr do Sol', 'Litoral'], times: ['09:00', '15:00'] },
-    { id: 'ponta-mangue', name: 'Circuito Ponta do Mangue', cat: '4×4', dur: 'Meio Dia',
-      priceShared: 200, pricePrivate: 1000, icon: '🏜️',
-      grad: 'linear-gradient(145deg,#2a7a5a,#3dab7a,#8edcb8)',
-      photo: 'https://exploreatins.com/wp-content/uploads/2025/10/Site-Banner-Principal2-.png',
-      photoPos: 'center 40%',
-      desc: 'Explore o Poço Verde, Lagoa da Esmeralda e a Lagoa Tropical — uma das maiores e mais belas de Atins, com natureza exuberante.',
-      tags: ['Poço Verde', 'Lagoa Tropical', 'Matas'], times: ['09:00', '15:00'] },
-    { id: 'guaras', name: 'Revoada dos Guarás', cat: 'Barco', dur: '1h30',
-      priceShared: 150, pricePrivate: 500, icon: '🦜',
-      grad: 'linear-gradient(145deg,#c44010,#e07030,#f5a860)',
-      photo: 'https://exploreatins.com/wp-content/uploads/2026/02/revoada.png',
-      photoPos: 'center center',
-      desc: 'Um dos espetáculos naturais mais raros do Brasil: centenas de guarás vermelhos sobrevoam os manguezais ao pôr do sol.',
-      tags: ['Pôr do Sol', 'Natureza', 'Barco'], times: ['16:30'] },
-    { id: 'estrelas', name: 'Mirar das Estrelas', cat: 'Noturno', dur: '2h', badge: 'ÚNICO',
-      priceShared: null, pricePrivate: 800, icon: '🌌',
-      grad: 'linear-gradient(145deg,#080e1c,#1a2b55,#2e4a8a)',
-      photo: 'https://exploreatins.com/wp-content/uploads/2026/02/noturno.png',
-      photoPos: 'center center',
-      desc: 'Experiência única e mágica: contemple o céu estrelado dos Lençóis de dentro das dunas, longe de qualquer poluição luminosa.',
-      tags: ['Noturno', 'Hilux Privativa', 'Inesquecível'], times: ['19:00'] },
-    { id: 'cavalo', name: 'Trilha a Cavalo', cat: 'Natureza', dur: '3h',
-      priceShared: null, pricePrivate: 750, icon: '🐴',
-      grad: 'linear-gradient(145deg,#5a3a1a,#a06030,#d4a860)',
-      photo: 'https://exploreatins.com/wp-content/uploads/2026/02/cavalgada.png',
-      photoPos: 'center center',
-      desc: 'Cavalgue por areias brancas, matas típicas e vilarejos em 3 horas de pura tranquilidade nos Lençóis.',
-      tags: ['Manhã ou Tarde', 'Guia Incluso', 'Natureza'], times: ['08:30', '15:30'] },
-    { id: 'trekking', name: 'Trekking 4 Dias', cat: 'Expedição', dur: '4 dias', badge: 'AVENTURA MÁXIMA',
-      priceShared: 3568.50, pricePrivate: null, icon: '🥾',
-      grad: 'linear-gradient(145deg,#3a2010,#7a4a20,#c49060)',
-      photo: 'https://exploreatins.com/wp-content/uploads/2026/02/trekking.png',
-      photoPos: 'center center',
-      desc: '46 km de Atins a Santo Amaro, por comunidades remotas, dunas imensas e lagoas intocadas. All inclusive.',
-      tags: ['46 km', '4 noites', 'All Inclusive'], times: ['06:00'] }]
-
-  },
-  santoAmaro: {
-    id: 'santoAmaro', name: 'Santo Amaro', state: 'MA', score: 8.5,
-    accent: '#2e9fc0', accentLight: '#5ec0d8', accentPale: '#daf0f8',
-    grad: 'linear-gradient(145deg,#0d3d56 0%,#1a6b8a 50%,#48b8d0 100%)',
-    heroGrad: 'linear-gradient(160deg,#0d3d56 0%,#1a6b8a 40%,#2e9fc0 70%,#7dd4e8 100%)',
-    tags: ['Dunas Selvagens', 'Lagoas Isoladas', 'Natureza Pura'],
-    desc: 'A base mais selvagem e emocionante. Os roteiros mais impressionantes do parque.',
-    icon: '⛰️',
-    tours: [
-    { id: 'andorinhas', name: 'Circuito Andorinhas', cat: '4×4', dur: '3h',
-      priceShared: 200, pricePrivate: 1000, icon: '🦢',
-      grad: 'linear-gradient(145deg,#1a6b8a,#2e9fc0,#a8e4f0)',
-      desc: 'Em menos de 10 minutos chegamos à primeira lagoa. Visita a 2 lagoas do Parque Municipal, com destaque para a imensidão da Lagoa da Andorinha.',
-      tags: ['2 Lagoas', 'Pôr do Sol'], times: ['09:00', '12:00', '15:00'] },
-    { id: 'emendadas', name: 'Circuito Emendadas', cat: 'Aventura', dur: '6h', badge: 'FAVORITO',
-      priceShared: 300, pricePrivate: 1800, icon: '🌟',
-      grad: 'linear-gradient(145deg,#1a2b35,#1a4f6b,#2e7fa3)',
-      desc: '4×4 até o limite do parque federal, caminhada 1h–1h30, banho na Lagoa das Emendadas e pôr do sol no alto do morro. Na volta, estrelas.',
-      tags: ['Caminhada', 'Pôr do Sol', 'Estrelas'], times: ['13:30'] },
-    { id: 'betania', name: 'Circuito Betânia', cat: 'Dia Completo', dur: '9h',
-      priceShared: 300, pricePrivate: 1800, icon: '🍽️',
-      grad: 'linear-gradient(145deg,#6b4a1a,#c9a96e,#edd8a8)',
-      desc: '3 lagoas, almoço no povoado dentro do Parque Nacional e passeio pelo rio. Um dia completo na natureza mais selvagem dos Lençóis.',
-      tags: ['3 Lagoas', 'Almoço', 'Rio'], times: ['09:00'] },
-    { id: 'america', name: 'Circuito América', cat: 'Barco', dur: '3h',
-      priceShared: 200, pricePrivate: 1000, icon: '🛥️',
-      grad: 'linear-gradient(145deg,#1e5f6b,#2e9fc0,#7dd4e8)',
-      desc: 'Lagoas acessadas por "voadeiras" — lanchas que cruzam o grande lago em 15 a 25 minutos. Fora da rotina!',
-      tags: ['Lancha', 'Lagoas', 'Diferente'], times: ['09:00', '15:00'] },
-    { id: 'pontaverde', name: 'Ponta Verde', cat: 'Natureza', dur: '9h',
-      priceShared: 300, pricePrivate: 1500, icon: '🦐',
-      grad: 'linear-gradient(145deg,#1a5c3a,#2a9a62,#7dd4a8)',
-      desc: 'Lagoa do Reflexo, almoço com camarão-da-malásia grelhado (até 35 cm!), Lagoa da Maioba e pôr do sol inesquecível.',
-      tags: ['Lagoa do Reflexo', 'Camarão', 'Fauna'], times: ['09:00'] },
-    { id: 'rancharia', name: 'Circuito Rancharia', cat: 'Aventura', dur: '9h',
-      priceShared: 300, pricePrivate: 1800, icon: '⛰️',
-      grad: 'linear-gradient(145deg,#3a1a6b,#6b48b8,#b8a0e0)',
-      desc: 'Serra da Rancharia de 4×4, travessia de lago de águas azuis até a Lagoa do Bicudo Gordo e pôr do sol.',
-      tags: ['Serra', 'Lago Azul', 'Dia Completo'], times: ['09:00'] },
-    { id: 'junco', name: 'Circuito Lagoa do Junco', cat: '4×4', dur: '3h',
-      priceShared: 200, pricePrivate: 1000, icon: '🌿',
-      grad: 'linear-gradient(145deg,#2a7a5a,#3dab7a,#8edcb8)',
-      desc: 'Refúgio de águas cristalinas cercado por dunas brancas. Transporte em 4×4, guia especializado e tempo livre para banho.',
-      tags: ['Guia Especializado', 'Águas Cristalinas', 'Dunas Brancas'], times: ['15:00'] }]
-
-  },
-  barreirinhas: {
-    id: 'barreirinhas', name: 'Barreirinhas', state: 'MA', score: 7.8,
-    accent: '#c9a96e', accentLight: '#ddc08a', accentPale: '#f5ede0',
-    grad: 'linear-gradient(145deg,#1a3340 0%,#2e6080 50%,#c9a96e 100%)',
-    heroGrad: 'linear-gradient(160deg,#1a3340 0%,#2e5070 40%,#4a8aaa 70%,#c9a96e 100%)',
-    tags: ['Mais Estruturada', 'Custo-Benefício', 'Fácil Acesso'],
-    desc: 'A base mais completa em infraestrutura. Hotéis para todos os orçamentos e acesso direto ao parque.',
-    icon: '🏙️',
-    tours: [
-    { id: 'lenco-jipe', name: 'Jipe pelos Lençóis', cat: '4×4', dur: 'Dia Completo', badge: 'MAIS PEDIDO',
-      priceShared: 180, pricePrivate: 1400, icon: '🚙',
-      grad: 'linear-gradient(145deg,#1a4f6b,#2e7fa3,#7dd4e8)',
-      desc: 'O clássico dos Lençóis saindo de Barreirinhas. Lagoa Azul e Lagoa Bonita com 4×4 pelas dunas mais icônicas do parque.',
-      tags: ['Lagoa Azul', 'Lagoa Bonita', 'Clássico'], times: ['08:00', '13:00'] },
-    { id: 'rio-preguicas', name: 'Rio Preguiças de Lancha', cat: 'Barco', dur: '4h',
-      priceShared: 120, pricePrivate: 900, icon: '⛵',
-      grad: 'linear-gradient(145deg,#1a6b8a,#2e9fc0,#a8e4f0)',
-      desc: 'Navegue pelo Rio Preguiças até Mandacaru e Caburé. Farol histórico, dunas e o encontro do rio com o mar.',
-      tags: ['Rio Preguiças', 'Mandacaru', 'Farol'], times: ['08:30', '14:00'] },
-    { id: 'vassouras', name: 'Vassouras & Pequenos Lençóis', cat: '4×4', dur: 'Dia Completo',
-      priceShared: 250, pricePrivate: 1600, icon: '🌿',
-      grad: 'linear-gradient(145deg,#2a7a5a,#3dab7a,#7dd4a8)',
-      desc: 'Percurso pelas dunas dos Pequenos Lençóis até Vassouras. Lagoas cristalinas, macaquinhos e natureza intocada.',
-      tags: ['Lagoas', 'Macaquinhos', 'Dunas'], times: ['08:00'] },
-    { id: 'lagoa-azul-barr', name: 'Lagoa Azul Expedição', cat: '4×4', dur: 'Meio Dia',
-      priceShared: 200, pricePrivate: 1200, icon: '💙',
-      grad: 'linear-gradient(145deg,#1e5070,#2870a0,#68c8e8)',
-      desc: 'As lagoas mais famosas do parque, com conforto total saindo de Barreirinhas. Ideal para famílias e grupos grandes.',
-      tags: ['Lagoa Azul', 'Conforto', 'Grupos'], times: ['08:00', '13:00'] },
-    { id: 'sunset-barr', name: 'Pôr do Sol nas Dunas', cat: 'Aventura', dur: '2h',
-      priceShared: 80, pricePrivate: 600, icon: '🌅',
-      grad: 'linear-gradient(145deg,#c04010,#e07030,#f5a040)',
-      desc: 'Suba as dunas ao entardecer e assista o pôr do sol sobre os Lençóis. O espetáculo que vale cada quilômetro de viagem.',
-      tags: ['Pôr do Sol', 'Dunas', 'Vista Panorâmica'], times: ['16:00', '17:00'] },
-    { id: 'city-tour', name: 'City Tour Barreirinhas', cat: 'Cultural', dur: '3h',
-      priceShared: 60, pricePrivate: 400, icon: '🏛️',
-      grad: 'linear-gradient(145deg,#6b4a1a,#c9a96e,#edd8a8)',
-      desc: 'Conheça Barreirinhas: artesanato local, gastronomia típica maranhense, museu do parque e história da região.',
-      tags: ['Cultura', 'Gastronomia', 'História'], times: ['09:00', '15:00'] }]
-
-  }
+// ── LOCATIONS & TOURS DATA ──────────────────────────────────
+const LOCATIONS={
+  atins:{id:'atins',name:'Atins',score:9.4,accent:ORANGE,accentLight:'#f5a872',accentPale:'#fdeee3',icon:'🌊',
+    heroGrad:'linear-gradient(160deg,#0d2d3d 0%,#1a5570 40%,#2e8fa8 70%,#c4a96a 100%)',
+    tags:['Praia Paradisíaca','Kitesurf','Autêntica','Pôr do Sol Único'],
+    desc:'A base mais completa e autêntica dos Lençóis. Sem asfalto e com alma genuína.',
+    tours:[
+      {id:'lagoa-lua',name:'Lagoa da Lua',cat:'4×4',dur:'Meio Dia',badge:'BEST SELLER',
+       priceShared:null,pricePrivate:1200,icon:'🌙',
+       grad:'linear-gradient(145deg,#1e5f7a,#2e8fa8,#c4a96a)',
+       photo:'https://exploreatins.com/wp-content/uploads/2026/01/DJI_0896-scaled.jpg',photoPos:'center 55%',
+       desc:'A queridinha de Atins! Lagoa de beleza única com águas cristalinas e dunas douradas — o passeio mais procurado de toda a região.',
+       tags:['Até 8 pax','Dunas Douradas','Privativo'],times:['09:00','15:00']},
+      {id:'lagoa-azul-bonita',name:'Lagoa Azul & Lagoa Bonita',cat:'4×4',dur:'Aventura',badge:'IMPERDÍVEL',
+       priceShared:null,pricePrivate:1800,icon:'💎',
+       grad:'linear-gradient(145deg,#1a4f6b,#2e7fa3,#a8e4f0)',
+       photo:'https://exploreatins.com/wp-content/uploads/2026/02/lagoa-bonita.png',photoPos:'center center',
+       desc:'As duas lagoas mais famosas de todo o Lençóis. Inclui a subida à duna mais alta do parque — vista panorâmica 360° de tirar o fôlego.',
+       tags:['Duna Mais Alta','Vista 360°','Privativo'],times:['09:00','14:00']},
+      {id:'canto-atins',name:'Circuito Canto de Atins',cat:'4×4',dur:'Meio Dia',
+       priceShared:200,pricePrivate:1000,icon:'🌅',
+       grad:'linear-gradient(145deg,#c4831a,#e8a840,#f5e08a)',
+       photo:'https://exploreatins.com/wp-content/uploads/2025/09/1.png',photoPos:'center 50%',
+       desc:'Percurso próximo ao mar com vista para o litoral de Atins. Lagoa das Sete Mulheres com a duna perfeita para o pôr do sol.',
+       tags:['6+ Lagoas','Pôr do Sol','Litoral'],times:['09:00','15:00']},
+      {id:'ponta-mangue',name:'Circuito Ponta do Mangue',cat:'4×4',dur:'Meio Dia',
+       priceShared:200,pricePrivate:1000,icon:'🏜️',
+       grad:'linear-gradient(145deg,#2a7a5a,#3dab7a,#8edcb8)',
+       photo:'https://exploreatins.com/wp-content/uploads/2025/10/Site-Banner-Principal2-.png',photoPos:'center 40%',
+       desc:'Explore o Poço Verde, Lagoa da Esmeralda e a Lagoa Tropical — uma das maiores e mais belas de Atins.',
+       tags:['Poço Verde','Lagoa Tropical','Matas'],times:['09:00','15:00']},
+      {id:'guaras',name:'Revoada dos Guarás',cat:'Barco',dur:'1h30',
+       priceShared:150,pricePrivate:500,icon:'🦜',
+       grad:'linear-gradient(145deg,#c44010,#e07030,#f5a860)',
+       photo:'https://exploreatins.com/wp-content/uploads/2026/02/revoada.png',photoPos:'center center',
+       desc:'Um dos espetáculos naturais mais raros do Brasil: centenas de guarás vermelhos sobrevoam os manguezais ao pôr do sol.',
+       tags:['Pôr do Sol','Natureza','Barco'],times:['16:30']},
+      {id:'estrelas',name:'Mirar das Estrelas',cat:'Noturno',dur:'2h',badge:'ÚNICO',
+       priceShared:null,pricePrivate:800,icon:'🌌',
+       grad:'linear-gradient(145deg,#080e1c,#1a2b55,#2e4a8a)',
+       photo:'https://exploreatins.com/wp-content/uploads/2026/02/noturno.png',photoPos:'center center',
+       desc:'Experiência única e mágica: contemple o céu estrelado dos Lençóis de dentro das dunas, longe de qualquer poluição luminosa.',
+       tags:['Noturno','Hilux Privativa','Inesquecível'],times:['19:00']},
+      {id:'cavalo',name:'Trilha a Cavalo',cat:'Natureza',dur:'3h',
+       priceShared:null,pricePrivate:750,icon:'🐴',
+       grad:'linear-gradient(145deg,#5a3a1a,#a06030,#d4a860)',
+       photo:'https://exploreatins.com/wp-content/uploads/2026/02/cavalgada.png',photoPos:'center center',
+       desc:'Cavalgue por areias brancas, matas típicas e vilarejos em 3 horas de pura tranquilidade nos Lençóis.',
+       tags:['Manhã ou Tarde','Guia Incluso','Natureza'],times:['08:30','15:30']},
+      {id:'trekking',name:'Trekking 4 Dias',cat:'Expedição',dur:'4 dias',badge:'AVENTURA MÁXIMA',
+       priceShared:3568.50,pricePrivate:null,icon:'🥾',
+       grad:'linear-gradient(145deg,#3a2010,#7a4a20,#c49060)',
+       photo:'https://exploreatins.com/wp-content/uploads/2026/02/trekking.png',photoPos:'center center',
+       desc:'46 km de Atins a Santo Amaro, por comunidades remotas, dunas imensas e lagoas intocadas. All inclusive.',
+       tags:['46 km','4 noites','All Inclusive'],times:['06:00']},
+    ]},
+  santoAmaro:{id:'santoAmaro',name:'Santo Amaro',score:8.5,accent:'#2e9fc0',accentLight:'#5ec0d8',accentPale:'#daf0f8',icon:'⛰️',
+    heroGrad:'linear-gradient(160deg,#0d3d56 0%,#1a6b8a 40%,#2e9fc0 70%,#7dd4e8 100%)',
+    tags:['Dunas Selvagens','Lagoas Isoladas','Natureza Pura'],
+    desc:'A base mais selvagem e emocionante. Os roteiros mais impressionantes do parque.',
+    tours:[
+      {id:'andorinhas',name:'Circuito Andorinhas',cat:'4×4',dur:'3h',priceShared:200,pricePrivate:1000,icon:'🦢',grad:'linear-gradient(145deg,#1a6b8a,#2e9fc0,#a8e4f0)',desc:'Em menos de 10 minutos chegamos à primeira lagoa. Visita a 2 lagoas do Parque Municipal com destaque para a Lagoa da Andorinha.',tags:['2 Lagoas','Pôr do Sol'],times:['09:00','12:00','15:00']},
+      {id:'emendadas',name:'Circuito Emendadas',cat:'Aventura',dur:'6h',badge:'FAVORITO',priceShared:300,pricePrivate:1800,icon:'🌟',grad:'linear-gradient(145deg,#1a2b35,#1a4f6b,#2e7fa3)',desc:'4×4 até o limite do parque federal, caminhada 1h–1h30, banho na Lagoa das Emendadas e pôr do sol no alto do morro.',tags:['Caminhada','Pôr do Sol','Estrelas'],times:['13:30']},
+      {id:'betania',name:'Circuito Betânia',cat:'Dia Completo',dur:'9h',priceShared:300,pricePrivate:1800,icon:'🍽️',grad:'linear-gradient(145deg,#6b4a1a,#c9a96e,#edd8a8)',desc:'3 lagoas, almoço no povoado dentro do Parque Nacional e passeio pelo rio.',tags:['3 Lagoas','Almoço','Rio'],times:['09:00']},
+      {id:'america',name:'Circuito América',cat:'Barco',dur:'3h',priceShared:200,pricePrivate:1000,icon:'🛥️',grad:'linear-gradient(145deg,#1e5f6b,#2e9fc0,#7dd4e8)',desc:'Lagoas acessadas por "voadeiras" — lanchas que cruzam o grande lago em 15 a 25 minutos.',tags:['Lancha','Lagoas','Diferente'],times:['09:00','15:00']},
+      {id:'pontaverde',name:'Ponta Verde',cat:'Natureza',dur:'9h',priceShared:300,pricePrivate:1500,icon:'🦐',grad:'linear-gradient(145deg,#1a5c3a,#2a9a62,#7dd4a8)',desc:'Lagoa do Reflexo, almoço com camarão-da-malásia grelhado (até 35 cm!), Lagoa da Maioba e pôr do sol.',tags:['Lagoa do Reflexo','Camarão','Fauna'],times:['09:00']},
+      {id:'rancharia',name:'Circuito Rancharia',cat:'Aventura',dur:'9h',priceShared:300,pricePrivate:1800,icon:'⛰️',grad:'linear-gradient(145deg,#3a1a6b,#6b48b8,#b8a0e0)',desc:'Serra da Rancharia de 4×4, travessia de lago azul até a Lagoa do Bicudo Gordo e pôr do sol.',tags:['Serra','Lago Azul','Dia Completo'],times:['09:00']},
+    ]},
+  barreirinhas:{id:'barreirinhas',name:'Barreirinhas',score:7.8,accent:'#c9a96e',accentLight:'#ddc08a',accentPale:'#f5ede0',icon:'🏙️',
+    heroGrad:'linear-gradient(160deg,#1a3340 0%,#2e5070 40%,#4a8aaa 70%,#c9a96e 100%)',
+    tags:['Mais Estruturada','Custo-Benefício','Fácil Acesso'],
+    desc:'A base mais completa em infraestrutura. Hotéis para todos os orçamentos e acesso direto ao parque.',
+    tours:[
+      {id:'lenco-jipe',name:'Jipe pelos Lençóis',cat:'4×4',dur:'Dia Completo',badge:'MAIS PEDIDO',priceShared:180,pricePrivate:1400,icon:'🚙',grad:'linear-gradient(145deg,#1a4f6b,#2e7fa3,#7dd4e8)',desc:'O clássico dos Lençóis saindo de Barreirinhas. Lagoa Azul e Lagoa Bonita.',tags:['Lagoa Azul','Lagoa Bonita','Clássico'],times:['08:00','13:00']},
+      {id:'rio-preguicas',name:'Rio Preguiças de Lancha',cat:'Barco',dur:'4h',priceShared:120,pricePrivate:900,icon:'⛵',grad:'linear-gradient(145deg,#1a6b8a,#2e9fc0,#a8e4f0)',desc:'Navegue pelo Rio Preguiças até Mandacaru e Caburé. Farol histórico e o encontro do rio com o mar.',tags:['Rio Preguiças','Mandacaru','Farol'],times:['08:30','14:00']},
+      {id:'vassouras',name:'Vassouras & Pequenos Lençóis',cat:'4×4',dur:'Dia Completo',priceShared:250,pricePrivate:1600,icon:'🌿',grad:'linear-gradient(145deg,#2a7a5a,#3dab7a,#7dd4a8)',desc:'Pequenos Lençóis até Vassouras. Lagoas cristalinas e macaquinhos em seu habitat.',tags:['Lagoas','Macaquinhos','Dunas'],times:['08:00']},
+      {id:'sunset-barr',name:'Pôr do Sol nas Dunas',cat:'Aventura',dur:'2h',priceShared:80,pricePrivate:600,icon:'🌅',grad:'linear-gradient(145deg,#c04010,#e07030,#f5a040)',desc:'Suba as dunas ao entardecer e assista o pôr do sol sobre os Lençóis.',tags:['Pôr do Sol','Dunas','Vista'],times:['16:00','17:00']},
+      {id:'city-tour',name:'City Tour Barreirinhas',cat:'Cultural',dur:'3h',priceShared:60,pricePrivate:400,icon:'🏛️',grad:'linear-gradient(145deg,#6b4a1a,#c9a96e,#edd8a8)',desc:'Artesanato local, gastronomia típica maranhense, museu do parque e história da região.',tags:['Cultura','Gastronomia','História'],times:['09:00','15:00']},
+    ]},
 };
+const ALL_LOCS=[LOCATIONS.atins,LOCATIONS.santoAmaro,LOCATIONS.barreirinhas];
 
-const ALL_LOCATIONS = [LOCATIONS.atins, LOCATIONS.santoAmaro, LOCATIONS.barreirinhas];
-
-// ── HELPERS ──────────────────────────────────────────────────────────
-function Stripe({ height = 200, grad, icon, opacity = 0.26, iconSize = 80, photo, photoPos = 'center center' }) {
-  if (photo) {
-    return (
-      <div style={{ height, position: 'relative', overflow: 'hidden', flexShrink: 0, background: grad }}>
-        <img src={photo} alt="" loading="lazy"
-        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: photoPos, display: 'block' }} />
-        <div style={{ position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom,rgba(0,0,0,.08) 0%,rgba(0,0,0,.28) 100%)' }} />
-      </div>);
-
-  }
-  return (
-    <div style={{ height, background: grad, position: 'relative', overflow: 'hidden',
-      flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ position: 'absolute', inset: 0,
-        backgroundImage: 'repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 16px)' }} />
-      <span style={{ fontSize: iconSize, opacity, userSelect: 'none', pointerEvents: 'none' }}>{icon}</span>
-    </div>);
-
+// ── HELPERS ────────────────────────────────────────────────────
+function Stripe({height=200,grad,icon,opacity=.26,iconSize=80,photo,photoPos='center center'}){
+  if(photo) return(
+    <div style={{height,position:'relative',overflow:'hidden',flexShrink:0,background:grad}}>
+      <img src={photo} alt="" loading="lazy" style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:photoPos,display:'block'}}/>
+      <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(0,0,0,.08) 0%,rgba(0,0,0,.28) 100%)'}}/>
+    </div>
+  );
+  return(
+    <div style={{height,background:grad,position:'relative',overflow:'hidden',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{position:'absolute',inset:0,backgroundImage:'repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 16px)'}}/>
+      <span style={{fontSize:iconSize,opacity,userSelect:'none'}}>{icon}</span>
+    </div>
+  );
 }
-
-function Stars({ rating, size = 10 }) {
-  return <span style={{ color: ORANGE, fontSize: size, letterSpacing: 1.5 }}>
-    {'★'.repeat(Math.floor(rating))}{rating % 1 >= .5 ? '½' : ''}
-  </span>;
-}
-
-function StatusBar({ light = false }) {
-  const c = light ? 'rgba(255,255,255,.9)' : DARK;
-  return (
-    <div style={{ height: 52, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-      padding: '0 26px 8px', flexShrink: 0, position: 'relative', zIndex: 10 }}>
-      <span style={{ fontSize: 14, fontWeight: 700, color: c }}>9:41</span>
-      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-        <svg width="17" height="12" viewBox="0 0 17 12" fill={c} opacity={.85}>
-          <rect x="0" y="7" width="3" height="5" rx=".6" /><rect x="4.7" y="5" width="3" height="7" rx=".6" />
-          <rect x="9.4" y="2.5" width="3" height="9.5" rx=".6" /><rect x="14.1" y="0" width="3" height="12" rx=".6" />
-        </svg>
-        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke={c} strokeWidth="1.6" opacity={.85}>
-          <path d="M1 4.8 Q8 -1 15 4.8" strokeLinecap="round" />
-          <path d="M3.5 7.5 Q8 3.5 12.5 7.5" strokeLinecap="round" />
-          <circle cx="8" cy="11" r="1.2" fill={c} stroke="none" />
-        </svg>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <div style={{ width: 24, height: 12, border: `1.5px solid ${c}`, borderRadius: 3.5, padding: '1.5px', opacity: .85 }}>
-            <div style={{ width: '82%', height: '100%', background: c, borderRadius: 1.5 }} />
-          </div>
-          <div style={{ width: 2, height: 6, background: c, borderRadius: 1, opacity: .7 }} />
-        </div>
-      </div>
-    </div>);
-
-}
-
-function Island() {
-  return <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)',
-    width: 122, height: 36, background: '#0d1a1e', borderRadius: 20, zIndex: 60 }} />;
-}
-
-function BottomBar({ active = 0, accent = TEAL }) {
-  const tabs = [{ icon: '⊞', lbl: 'Início' }, { icon: '◎', lbl: 'Explorar' }, { icon: '♡', lbl: 'Favoritos' }, { icon: '☰', lbl: 'Roteiro' }];
-  return (
-    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 84,
-      background: 'rgba(250,245,236,.93)', backdropFilter: 'blur(20px)',
-      borderTop: `1px solid ${SANDD}`, display: 'flex', alignItems: 'flex-start',
-      padding: '10px 8px 0', zIndex: 20 }}>
-      {tabs.map((t, i) =>
-      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer' }}>
-          <div style={{ width: 44, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: 14, background: i === active ? `${accent}22` : 'transparent' }}>
-            <span style={{ fontSize: 19, opacity: i === active ? 1 : .35 }}>{t.icon}</span>
-          </div>
-          <span style={{ fontSize: 9.5, fontWeight: i === active ? 700 : 400, color: i === active ? accent : MUTED }}>{t.lbl}</span>
-        </div>
-      )}
-    </div>);
-
-}
-
-function Phone({ children, label, sublabel }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, flexShrink: 0 }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: '.22em', textTransform: 'uppercase',
-          color: 'rgba(255,255,255,.28)', marginBottom: 5 }}>{label}</div>
-        <div style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 17, color: 'rgba(255,255,255,.5)' }}>{sublabel}</div>
-      </div>
-      <div style={{ width: 417, background: '#181820', borderRadius: 56, padding: 12, position: 'relative',
-        boxShadow: '0 0 0 1px rgba(255,255,255,.07),0 60px 120px rgba(0,0,0,.7),inset 0 0 0 .5px rgba(255,255,255,.03)' }}>
-        <div style={{ position: 'absolute', left: -3, top: 118, width: 3, height: 38, background: '#2e2e36', borderRadius: '2px 0 0 2px' }} />
-        <div style={{ position: 'absolute', left: -3, top: 170, width: 3, height: 68, background: '#2e2e36', borderRadius: '2px 0 0 2px' }} />
-        <div style={{ position: 'absolute', left: -3, top: 250, width: 3, height: 68, background: '#2e2e36', borderRadius: '2px 0 0 2px' }} />
-        <div style={{ position: 'absolute', right: -3, top: 168, width: 3, height: 100, background: '#2e2e36', borderRadius: '0 2px 2px 0' }} />
-        <div style={{ width: 393, height: 852, borderRadius: 46, overflow: 'hidden', background: SANDL, position: 'relative' }}>
-          <Island />{children}
-        </div>
-      </div>
-    </div>);
-
-}
-
-// ── TRIPADVISOR BADGE ────────────────────────────────────────────────
-function TripAdvisorBadge({ compact = false }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 6 : 8,
-      background: compact ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.08)',
-      backdropFilter: 'blur(8px)',
-      border: `1px solid ${compact ? 'rgba(255,255,255,0.2)' : 'rgba(52,183,109,0.35)'}`,
-      borderRadius: compact ? 10 : 14, padding: compact ? '5px 10px' : '10px 14px',
-      cursor: 'pointer' }}>
-      {/* TA owl logo simplified */}
-      <div style={{ width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: '50%',
-        background: '#34B76D', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, fontSize: compact ? 11 : 14 }}>🦉</div>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          {'★★★★★'.split('').map((s, i) =>
-          <span key={i} style={{ color: '#34B76D', fontSize: compact ? 8 : 10 }}>★</span>
-          )}
-        </div>
-        <div style={{ fontSize: compact ? 8 : 9.5, color: compact ? 'rgba(255,255,255,0.7)' : MUTED,
-          fontWeight: 500, marginTop: 1 }}>
-          {compact ? 'TripAdvisor · 4 avaliações' : 'Nº14 em Barreirinhas · 4 avaliações · Todas Excelente'}
-        </div>
-      </div>
-      {!compact &&
-      <div style={{ marginLeft: 'auto', fontSize: 9, color: '#34B76D', fontWeight: 700,
-        letterSpacing: '.05em' }}>VER →</div>
-      }
-    </div>);
-
-}
-
-// ── CASHBACK BANNER ──────────────────────────────────────────────────
-function CashbackBanner() {
-  return (
-    <div style={{ borderRadius: 16, overflow: 'hidden',
-      background: 'linear-gradient(135deg,#0d2d3d 0%,#1e6e8a 60%,#e07b3a 100%)',
-      padding: '14px 16px', marginBottom: 16, position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0,
-        backgroundImage: 'repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 14px)' }} />
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 22, background: 'rgba(255,255,255,.15)',
-          backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🎁</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-            <span style={{ background: ORANGE, borderRadius: 8, padding: '2px 7px',
-              fontSize: 9, fontWeight: 800, color: WHITE, letterSpacing: '.06em' }}>CASHBACK</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>Programa de fidelidade</span>
-          </div>
-          <p style={{ fontSize: 12, color: WHITE, fontWeight: 600, lineHeight: 1.4 }}>
-            10% de cashback em todos os passeios e transfers
-          </p>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,.55)', marginTop: 3 }}>
-            Válido por 3 anos • Acumule e use nas próximas viagens
-          </p>
-        </div>
-      </div>
-      <div style={{ position: 'relative', marginTop: 12, background: 'rgba(255,255,255,.1)',
-        borderRadius: 10, padding: '8px 12px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,.5)', letterSpacing: '.08em', textTransform: 'uppercase' }}>Seu saldo estimado neste passeio</span>
-          <div style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 20, fontWeight: 600, color: WHITE }}>+ R$ 120 <span style={{ fontSize: 11, fontWeight: 400 }}>em cashback</span></div>
-        </div>
-        <div style={{ background: ORANGE, borderRadius: 10, padding: '7px 12px',
-          fontSize: 10, fontWeight: 700, color: WHITE }}>Como usar →</div>
-      </div>
-    </div>);
-
-}
-
-// ── GAMIFICATION CARD ────────────────────────────────────────────────
-function GamificationCard() {
-  const badges = [
-  { icon: '🌊', name: 'Explorador', unlocked: true },
-  { icon: '⭐', name: 'Veterano', unlocked: false },
-  { icon: '🏆', name: 'Lendário', unlocked: false }];
-
-  return (
-    <div style={{ background: WHITE, borderRadius: 16, padding: '14px 16px',
-      border: `1px solid ${SANDD}`, marginBottom: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div>
-          <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: MUTED }}>Sua Jornada</p>
-          <p style={{ fontSize: 13, fontWeight: 700, color: DARK, marginTop: 2 }}>Nível Explorador 🌊</p>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 9, color: MUTED }}>Cashback acumulado</div>
-          <div style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 20, fontWeight: 600, color: TEAL }}>R$ 0,00</div>
-        </div>
-      </div>
-      {/* Progress bar */}
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-          <span style={{ fontSize: 10, color: MUTED }}>0 passeios</span>
-          <span style={{ fontSize: 10, color: MUTED }}>3 para Veterano</span>
-        </div>
-        <div style={{ height: 6, background: TEALP, borderRadius: 3 }}>
-          <div style={{ width: '15%', height: '100%', background: TEAL, borderRadius: 3 }} />
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 8 }}>
-        {badges.map((b) =>
-        <div key={b.name} style={{ flex: 1, textAlign: 'center', padding: '8px 6px',
-          borderRadius: 12, background: b.unlocked ? TEALP : `${SANDD}40`,
-          border: `1.5px solid ${b.unlocked ? TEAL : SANDD}` }}>
-            <div style={{ fontSize: 20, opacity: b.unlocked ? 1 : 0.35 }}>{b.icon}</div>
-            <div style={{ fontSize: 9, fontWeight: 600, color: b.unlocked ? TEAL : MUTED,
-            marginTop: 3 }}>{b.name}</div>
-          </div>
-        )}
-      </div>
-      <p style={{ fontSize: 10, color: MUTED, textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
-        💡 10% de cashback em passeios e transfers • Válido por 3 anos
-      </p>
-    </div>);
-
-}
-
-// ── REVIEW CARD ──────────────────────────────────────────────────────
-function ReviewCard({ review }) {
-  return (
-    <div style={{ background: WHITE, borderRadius: 16, padding: '13px 14px',
-      border: `1px solid ${SANDD}`, flexShrink: 0, width: 260 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 16, background: TEALP,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 700, color: TEAL, flexShrink: 0 }}>{review.avatar}</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: DARK }}>{review.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ color: ORANGE, fontSize: 9, letterSpacing: 1 }}>{'★'.repeat(review.stars)}</span>
-            <span style={{ fontSize: 9, color: MUTED }}>{review.date}</span>
+function Stars({n=5,size=10}){return <span style={{color:ORANGE,fontSize:size,letterSpacing:1.5}}>{'★'.repeat(n)}</span>}
+function StatusBar({light=false,onBack,title}){
+  const c=light?'rgba(255,255,255,.9)':DARK;
+  return(
+    <div style={{height:52,display:'flex',alignItems:'flex-end',justifyContent:'space-between',padding:'0 20px 8px',flexShrink:0,zIndex:10,position:'relative'}}>
+      {onBack
+        ? <button onClick={onBack} style={{background:'none',border:'none',color:c,fontSize:22,lineHeight:1,padding:'0 4px',marginLeft:-4}}>‹</button>
+        : <span style={{fontSize:14,fontWeight:700,color:c}}>9:41</span>}
+      {title && <span style={{fontSize:14,fontWeight:600,color:c,position:'absolute',left:'50%',transform:'translateX(-50%)',bottom:9}}>{title}</span>}
+      <div style={{display:'flex',gap:5,alignItems:'center'}}>
+        <svg width="15" height="11" viewBox="0 0 17 12" fill={c} opacity={.85}><rect x="0" y="7" width="3" height="5" rx=".6"/><rect x="4.7" y="5" width="3" height="7" rx=".6"/><rect x="9.4" y="2.5" width="3" height="9.5" rx=".6"/><rect x="14.1" y="0" width="3" height="12" rx=".6"/></svg>
+        <div style={{display:'flex',alignItems:'center',gap:1.5}}>
+          <div style={{width:22,height:11,border:`1.5px solid ${c}`,borderRadius:3,padding:'1.5px',opacity:.85}}>
+            <div style={{width:'82%',height:'100%',background:c,borderRadius:1.5}}/>
           </div>
         </div>
-        <div style={{ width: 20, height: 20, borderRadius: 10, background: '#34B76D',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10,
-          flexShrink: 0 }}>🦉</div>
       </div>
-      <p style={{ fontSize: 11, color: DARK, fontWeight: 600, marginBottom: 4 }}>{review.title}</p>
-      <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.6,
-        overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3,
-        WebkitBoxOrient: 'vertical' }}>{review.text}</p>
-    </div>);
-
+    </div>
+  );
+}
+function BottomBar({active=0,accent=TEAL}){
+  const tabs=[{icon:'⊞',lbl:'Início'},{icon:'◎',lbl:'Explorar'},{icon:'♡',lbl:'Favoritos'},{icon:'☰',lbl:'Roteiro'}];
+  return(
+    <div className="bottom-bar">
+      {tabs.map((t,i)=>(
+        <div key={i} className="tab">
+          <div className="tab-icon" style={{background:i===active?`${accent}22`:'transparent'}}><span style={{opacity:i===active?1:.35}}>{t.icon}</span></div>
+          <span className={`tab-lbl${i===active?' on':''}`} style={{color:i===active?accent:MUTED}}>{t.lbl}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-// ── CONCIERGE SECTION ────────────────────────────────────────────────
-function ConciergeSection({ locId }) {
-  const data = CONCIERGE[locId] || CONCIERGE.atins;
-  const [tab, setTab] = useState('pousadas');
-  const items = data[tab] || [];
-
-  return (
-    <div style={{ padding: '0 18px', marginBottom: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED }}>🛎️ Concierge Explore</p>
-          <p style={{ fontSize: 12, color: DARK, fontWeight: 600, marginTop: 2 }}>Recomendações exclusivas</p>
-        </div>
-        <div style={{ background: `${ORANGE}18`, border: `1px solid ${ORANGE}40`,
-          borderRadius: 10, padding: '4px 10px', fontSize: 9.5, color: ORANGE, fontWeight: 700 }}>
-          CUPOM INCLUSO
-        </div>
-      </div>
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {['pousadas', 'restaurantes'].map((t) =>
-        <button key={t} onClick={() => setTab(t)} style={{
-          padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${tab === t ? TEAL : SANDD}`,
-          background: tab === t ? TEAL : WHITE, color: tab === t ? WHITE : MUTED,
-          fontSize: 11, fontWeight: 500, fontFamily: 'Outfit,sans-serif', cursor: 'pointer' }}>
-            {t === 'pousadas' ? '🏡 Pousadas' : '🍽️ Restaurantes'}
-          </button>
-        )}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-        {items.map((item, i) =>
-        <div key={i} style={{ background: WHITE, borderRadius: 14, padding: '12px 14px',
-          border: `1px solid ${SANDD}`,
-          display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-            <div style={{ width: 38, height: 38, borderRadius: 19, background: SANDL,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-              {item.type}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: DARK, marginBottom: 2 }}>{item.name}</div>
-              <div style={{ fontSize: 11, color: MUTED, lineHeight: 1.5 }}>{item.desc}</div>
-              <div style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 5,
-              background: `${ORANGE}15`, border: `1px solid ${ORANGE}30`,
-              borderRadius: 8, padding: '3px 8px' }}>
-                <span style={{ fontSize: 9, color: ORANGE, fontWeight: 700 }}>CUPOM</span>
-                <span style={{ fontSize: 10, fontFamily: 'monospace', fontWeight: 700,
-                color: ORANGE, letterSpacing: '.06em' }}>{item.cupom}</span>
-              </div>
-            </div>
-            <span style={{ fontSize: 13, color: TEAL, fontWeight: 700, flexShrink: 0 }}>→</span>
+// ── SCREEN: LOCATION CHOOSER ───────────────────────────────────
+function ChooserScreen({go}){
+  return(
+    <div className="screen slide-in">
+      <div className="island"/>
+      <div style={{background:DARK,flex:1,display:'flex',flexDirection:'column'}}>
+        <StatusBar light/>
+        <div className="screen-scroll" style={{background:DARK}}>
+          <div style={{padding:'10px 22px 22px'}}>
+            <p style={{fontSize:10,color:'rgba(255,255,255,.4)',letterSpacing:'.14em',textTransform:'uppercase',marginBottom:6}}>Lençóis Maranhenses</p>
+            <h1 style={{fontFamily:'"Cormorant Garamond",serif',fontSize:32,fontWeight:300,color:WHITE,lineHeight:1.05,marginBottom:8}}>
+              Qual é a sua<br/><em style={{color:ORANGE,fontStyle:'italic'}}>base ideal?</em>
+            </h1>
+            <p style={{fontSize:12,color:'rgba(255,255,255,.38)',lineHeight:1.6}}>Três bases, três experiências únicas. Compare e escolha.</p>
           </div>
-        )}
-      </div>
-      <div style={{ marginTop: 10, background: `${TEAL}10`, borderRadius: 12, padding: '10px 14px',
-        display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-        <span style={{ fontSize: 16 }}>💬</span>
-        <p style={{ fontSize: 11, color: TEAL, lineHeight: 1.55, fontWeight: 500 }}>
-          Nosso concierge responde via WhatsApp e ajuda você a planejar cada detalhe da estadia.
-        </p>
-      </div>
-    </div>);
-
-}
-
-// ── SCREEN 1: LOCATION CHOOSER ────────────────────────────────────────
-function LocationChooser() {
-  return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-      background: DARK, position: 'relative' }}>
-      <StatusBar light />
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 20 }}>
-        {/* Hero header */}
-        <div style={{ padding: '10px 24px 22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', letterSpacing: '.12em',
-                textTransform: 'uppercase', marginBottom: 6 }}>Lençóis Maranhenses</p>
-              <h1 style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 30, fontWeight: 300,
-                color: WHITE, lineHeight: 1.05 }}>Qual é a sua<br /><em style={{ color: ORANGE, fontStyle: 'italic' }}>base ideal?</em></h1>
-            </div>
-            <div style={{ width: 46, height: 46, borderRadius: 23, flexShrink: 0,
-              background: `linear-gradient(135deg,${TEAL},${TEALL})`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🌊</div>
-          </div>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.38)', lineHeight: 1.6, marginTop: 10 }}>
-            Três bases, três experiências únicas. Compare e escolha a que combina com você.
-          </p>
-        </div>
-
-        {/* Location cards */}
-        <div style={{ padding: '0 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {ALL_LOCATIONS.map((loc, idx) =>
-          <div key={loc.id} style={{ borderRadius: 22, overflow: 'hidden',
-            border: `1px solid rgba(255,255,255,.08)`,
-            boxShadow: '0 4px 24px rgba(0,0,0,.3)', cursor: 'pointer', position: 'relative' }}>
-              {/* Gradient header */}
-              <div style={{ height: 100, background: loc.heroGrad, position: 'relative',
-              display: 'flex', alignItems: 'flex-end', padding: '0 16px 12px' }}>
-                <div style={{ position: 'absolute', inset: 0,
-                backgroundImage: 'repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 14px)' }} />
-                {/* Rank */}
-                <div style={{ position: 'absolute', top: 12, right: 14,
-                background: 'rgba(0,0,0,.4)', backdropFilter: 'blur(8px)',
-                borderRadius: 20, padding: '3px 10px',
-                display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,.55)', letterSpacing: '.08em' }}>SCORE</span>
-                  <span style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 16,
-                  fontWeight: 600, color: WHITE }}>{loc.score}</span>
+          <div style={{padding:'0 16px',display:'flex',flexDirection:'column',gap:14}}>
+            {ALL_LOCS.map((loc,idx)=>(
+              <div key={loc.id} onClick={()=>go('feed',{locId:loc.id})}
+                style={{borderRadius:22,overflow:'hidden',border:'1px solid rgba(255,255,255,.08)',cursor:'pointer',boxShadow:'0 4px 24px rgba(0,0,0,.3)'}}>
+                <div style={{height:100,background:loc.heroGrad,position:'relative',display:'flex',alignItems:'flex-end',padding:'0 16px 12px'}}>
+                  <div style={{position:'absolute',inset:0,backgroundImage:'repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 14px)'}}/>
+                  <div style={{position:'absolute',top:12,right:14,background:'rgba(0,0,0,.4)',backdropFilter:'blur(8px)',borderRadius:20,padding:'3px 10px',display:'flex',alignItems:'center',gap:5}}>
+                    <span style={{fontSize:9,color:'rgba(255,255,255,.5)'}}>SCORE</span>
+                    <span style={{fontFamily:'"Cormorant Garamond",serif',fontSize:16,fontWeight:600,color:WHITE}}>{loc.score}</span>
+                  </div>
+                  <div>
+                    <div style={{fontSize:10,color:'rgba(255,255,255,.5)',letterSpacing:'.12em',textTransform:'uppercase',marginBottom:3}}>#{idx+1} Base</div>
+                    <div style={{fontFamily:'"Cormorant Garamond",serif',fontSize:22,fontWeight:600,color:WHITE}}>{loc.icon} {loc.name}</div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,.55)', letterSpacing: '.15em',
-                  textTransform: 'uppercase', marginBottom: 3 }}>#{idx + 1} Base</div>
-                  <div style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 22,
-                  fontWeight: 600, color: WHITE }}>{loc.icon} {loc.name}</div>
+                <div style={{background:'#0f1e28',padding:'12px 16px 14px'}}>
+                  <p style={{fontSize:11.5,color:'rgba(255,255,255,.5)',lineHeight:1.6,marginBottom:10}}>{loc.desc}</p>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:5,marginBottom:12}}>
+                    {loc.tags.map(tag=>(
+                      <span key={tag} style={{padding:'3px 9px',borderRadius:20,background:`${loc.accent}20`,border:`1px solid ${loc.accent}40`,fontSize:9.5,color:loc.accentLight,fontWeight:500}}>{tag}</span>
+                    ))}
+                  </div>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:11,color:'rgba(255,255,255,.35)'}}>{loc.tours.length} passeios disponíveis</span>
+                    <div style={{background:loc.accent,borderRadius:10,padding:'7px 16px',fontSize:11,fontWeight:700,color:WHITE}}>Explorar →</div>
+                  </div>
                 </div>
               </div>
-              {/* Body */}
-              <div style={{ background: '#0f1e28', padding: '12px 16px 14px' }}>
-                <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,.5)', lineHeight: 1.6, marginBottom: 10 }}>{loc.desc}</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
-                  {loc.tags.map((tag) =>
-                <span key={tag} style={{ padding: '3px 9px', borderRadius: 20,
-                  background: `${loc.accent}20`, border: `1px solid ${loc.accent}40`,
-                  fontSize: 9.5, color: loc.accentLight, fontWeight: 500 }}>{tag}</span>
-                )}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,.35)' }}>
-                    {loc.tours.length} passeios disponíveis
-                  </span>
-                  <div style={{ background: loc.accent, borderRadius: 10, padding: '7px 16px',
-                  fontSize: 11, fontWeight: 700, color: WHITE }}>Explorar →</div>
-                </div>
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
+          <div style={{height:30}}/>
         </div>
-        <div style={{ height: 16 }} />
       </div>
-    </div>);
-
+    </div>
+  );
 }
 
-// ── SCREEN 2+: LOCATION HOME FEED ────────────────────────────────────
-function LocationFeed({ locId }) {
-  const loc = LOCATIONS[locId];
-  const [cat, setCat] = useState('Todos');
-  const cats = ['Todos', ...new Set(loc.tours.map((t) => t.cat))];
-  const filtered = cat === 'Todos' ? loc.tours : loc.tours.filter((t) => t.cat === cat);
-  const featured = loc.tours[0];
-  const list = loc.tours.slice(1, 4);
+// ── SCREEN: FEED ────────────────────────────────────────────────
+function FeedScreen({go,back,locId}){
+  const loc=LOCATIONS[locId];
+  const [cat,setCat]=useState('Todos');
+  const [conciergeTab,setConciergeTab]=useState('pousadas');
+  const cats=['Todos',...new Set(loc.tours.map(t=>t.cat))];
+  const filtered=cat==='Todos'?loc.tours:loc.tours.filter(t=>t.cat===cat);
+  const featured=loc.tours[0];
+  const list=loc.tours.slice(1,4);
+  const cd=CONCIERGE[locId]||CONCIERGE.atins;
 
-  return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: SANDL, position: 'relative' }}>
-      <StatusBar />
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 84 }}>
+  return(
+    <div className="screen slide-in">
+      <div className="island"/>
+      <StatusBar light={false} onBack={back}/>
+      <div className="screen-scroll" style={{paddingBottom:84}}>
         {/* Header */}
-        <div style={{ padding: '6px 22px 14px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{padding:'0 22px 14px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <div style={{ width: 6, height: 6, borderRadius: 3, background: loc.accent }} />
-                <p style={{ fontSize: 10.5, color: MUTED, fontWeight: 500, letterSpacing: '.06em' }}>
-                  {loc.name}, Maranhão
-                </p>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
+                <div style={{width:6,height:6,borderRadius:3,background:loc.accent}}/>
+                <p style={{fontSize:10.5,color:MUTED,fontWeight:500}}>{loc.name}, Maranhão</p>
               </div>
-              <h1 style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 27, fontWeight: 600,
-                color: DARK, lineHeight: 1.05 }}>Explore<br /><em style={{ color: loc.accent, fontStyle: 'italic' }}>base ideal?</em></h1>
+              <h1 style={{fontFamily:'"Cormorant Garamond",serif',fontSize:27,fontWeight:600,color:DARK,lineHeight:1.05}}>
+                Explore<br/><em style={{color:loc.accent,fontStyle:'italic'}}>Lençóis Maranhenses</em>
+              </h1>
             </div>
-            <div style={{ width: 44, height: 44, borderRadius: 22, flexShrink: 0,
-              background: `linear-gradient(135deg,${loc.accent},${loc.accentLight})`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{loc.icon}</div>
+            <div style={{width:44,height:44,borderRadius:22,background:`linear-gradient(135deg,${loc.accent},${loc.accentLight})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{loc.icon}</div>
           </div>
-          {/* Search */}
-          <div style={{ marginTop: 12, background: WHITE, borderRadius: 16, padding: '11px 14px',
-            display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${SANDD}` }}>
-            <span style={{ fontSize: 15, opacity: .4 }}>🔍</span>
-            <span style={{ fontSize: 13, color: MUTED, flex: 1 }}>Buscar passeios...</span>
-            <div style={{ background: loc.accent, borderRadius: 9, padding: '4px 9px' }}>
-              <span style={{ fontSize: 9, color: WHITE, fontWeight: 700, letterSpacing: '.07em' }}>FILTRAR</span>
+          {/* TripAdvisor */}
+          <div style={{display:'flex',alignItems:'center',gap:8,background:'rgba(52,183,109,.08)',border:'1px solid rgba(52,183,109,.25)',borderRadius:14,padding:'10px 14px',cursor:'pointer'}}>
+            <div style={{width:28,height:28,borderRadius:14,background:'#34B76D',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>🦉</div>
+            <div>
+              <div style={{display:'flex',gap:2,marginBottom:2}}>{'★★★★★'.split('').map((_,i)=><span key={i} style={{color:'#34B76D',fontSize:10}}>★</span>)}</div>
+              <div style={{fontSize:9.5,color:MUTED,fontWeight:500}}>Nº14 em Barreirinhas · 4 avaliações · Todas Excelente</div>
             </div>
+            <div style={{marginLeft:'auto',fontSize:9,color:'#34B76D',fontWeight:700}}>VER →</div>
           </div>
         </div>
 
-        {/* TripAdvisor badge */}
-        <div style={{ padding: '0 18px 14px' }}>
-          <TripAdvisorBadge compact={false} />
-        </div>
-
-        {/* Category pills */}
-        <div style={{ display: 'flex', gap: 8, paddingLeft: 22, paddingBottom: 18, overflowX: 'auto' }}>
-          {cats.map((c) =>
-          <button key={c} onClick={() => setCat(c)} style={{
-            padding: '6px 14px', borderRadius: 20, flexShrink: 0,
-            border: `1.5px solid ${cat === c ? loc.accent : SANDD}`,
-            background: cat === c ? loc.accent : WHITE,
-            color: cat === c ? WHITE : MUTED,
-            fontSize: 11, fontWeight: 500, fontFamily: 'Outfit,sans-serif', cursor: 'pointer'
-          }}>{c}</button>
-          )}
-          <div style={{ width: 10, flexShrink: 0 }} />
+        {/* Filter pills */}
+        <div style={{display:'flex',gap:8,paddingLeft:22,paddingBottom:18,overflowX:'auto'}}>
+          {cats.map(c=>(
+            <button key={c} onClick={()=>setCat(c)} style={{padding:'6px 14px',borderRadius:20,flexShrink:0,border:`1.5px solid ${cat===c?loc.accent:SANDD}`,background:cat===c?loc.accent:WHITE,color:cat===c?WHITE:MUTED,fontSize:11,fontWeight:500}}>
+              {c}
+            </button>
+          ))}
+          <div style={{width:10,flexShrink:0}}/>
         </div>
 
         {/* Featured */}
-        <div style={{ padding: '0 18px', marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED }}>✦ Destaque</p>
-            <span style={{ fontSize: 10, color: loc.accent, fontWeight: 500 }}>Mais reservado</span>
+        <div style={{padding:'0 18px',marginBottom:22}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:9}}>
+            <p style={{fontSize:10,fontWeight:700,letterSpacing:'.18em',textTransform:'uppercase',color:MUTED}}>✦ Destaque</p>
+            <span style={{fontSize:10,color:loc.accent,fontWeight:500}}>Mais reservado</span>
           </div>
-          <div style={{ borderRadius: 22, overflow: 'hidden', cursor: 'pointer', position: 'relative',
-            boxShadow: `0 10px 36px ${loc.accent}33` }}>
-            <Stripe height={210} grad={featured.grad} icon={featured.icon} iconSize={90} opacity={.24} photo={featured.photo} photoPos={featured.photoPos} />
-            <div style={{ position: 'absolute', inset: 0,
-              background: 'linear-gradient(to top,rgba(13,31,39,.9) 0%,rgba(13,31,39,.12) 55%,transparent 100%)' }} />
-            <div style={{ position: 'absolute', top: 14, left: 14, display: 'flex', gap: 6 }}>
-              {featured.badge &&
-              <span style={{ background: loc.accent, color: WHITE, borderRadius: 10,
-                padding: '3px 9px', fontSize: 9, fontWeight: 700 }}>{featured.badge}</span>
-              }
-              <span style={{ background: 'rgba(255,255,255,.18)', backdropFilter: 'blur(6px)',
-                color: WHITE, borderRadius: 10, padding: '3px 9px', fontSize: 9, fontWeight: 500 }}>{featured.cat}</span>
+          <div onClick={()=>go('detail',{locId,tourId:featured.id})}
+            style={{borderRadius:22,overflow:'hidden',cursor:'pointer',position:'relative',boxShadow:`0 10px 36px ${loc.accent}33`}}>
+            <Stripe height={210} grad={featured.grad} icon={featured.icon} iconSize={90} opacity={.24} photo={featured.photo} photoPos={featured.photoPos}/>
+            <div style={{position:'absolute',inset:0,background:'linear-gradient(to top,rgba(13,31,39,.9) 0%,rgba(13,31,39,.1) 55%,transparent 100%)'}}/>
+            <div style={{position:'absolute',top:14,left:14,display:'flex',gap:6}}>
+              {featured.badge&&<span style={{background:loc.accent,color:WHITE,borderRadius:10,padding:'3px 9px',fontSize:9,fontWeight:700}}>{featured.badge}</span>}
+              <span style={{background:'rgba(255,255,255,.18)',backdropFilter:'blur(6px)',color:WHITE,borderRadius:10,padding:'3px 9px',fontSize:9,fontWeight:500}}>{featured.cat}</span>
             </div>
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 16px 16px' }}>
-              <h3 style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 23, fontWeight: 600,
-                color: WHITE, marginBottom: 5 }}>{featured.name}</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <Stars rating={4.9} size={10} />
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,.55)' }}>4.9 · ⏱ {featured.dur}</span>
+            <div style={{position:'absolute',bottom:0,left:0,right:0,padding:'12px 16px 16px'}}>
+              <h3 style={{fontFamily:'"Cormorant Garamond",serif',fontSize:23,fontWeight:600,color:WHITE,marginBottom:5}}>{featured.name}</h3>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <Stars/><span style={{fontSize:10,color:'rgba(255,255,255,.55)'}}>4.9 · ⏱ {featured.dur}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div>
-                  {featured.priceShared ?
-                  <><span style={{ fontSize: 10, color: 'rgba(255,255,255,.45)' }}>a partir de </span>
-                       <span style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 22, fontWeight: 600, color: WHITE }}>R$ {featured.priceShared}</span>
-                       <span style={{ fontSize: 9, color: 'rgba(255,255,255,.45)' }}>/pax</span></> :
-                  <><span style={{ fontSize: 10, color: 'rgba(255,255,255,.45)' }}>privativo </span>
-                       <span style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 22, fontWeight: 600, color: WHITE }}>R$ {featured.pricePrivate?.toLocaleString('pt-BR')}</span></>
-                  }
+                  {featured.priceShared
+                    ?<><span style={{fontSize:10,color:'rgba(255,255,255,.45)'}}>a partir de </span><span style={{fontFamily:'"Cormorant Garamond",serif',fontSize:22,fontWeight:600,color:WHITE}}>R$ {featured.priceShared}</span><span style={{fontSize:9,color:'rgba(255,255,255,.45)'}}>/pax</span></>
+                    :<><span style={{fontSize:10,color:'rgba(255,255,255,.45)'}}>privativo </span><span style={{fontFamily:'"Cormorant Garamond",serif',fontSize:22,fontWeight:600,color:WHITE}}>R$ {featured.pricePrivate?.toLocaleString('pt-BR')}</span></>}
                 </div>
-                <div style={{ background: loc.accent, borderRadius: 12, padding: '8px 16px',
-                  fontSize: 11, fontWeight: 700, color: WHITE,
-                  boxShadow: `0 6px 20px ${loc.accent}55` }}>Ver Passeio →</div>
+                <div style={{background:loc.accent,borderRadius:12,padding:'8px 16px',fontSize:11,fontWeight:700,color:WHITE}}>Ver Passeio →</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* List */}
-        <div style={{ padding: '0 18px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 11 }}>
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase', color: MUTED }}>
-              Todos os Passeios
-            </p>
-            <span style={{ fontSize: 10, color: MUTED }}>{loc.tours.length} disponíveis</span>
+        {/* Tour list */}
+        <div style={{padding:'0 18px',marginBottom:20}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:11}}>
+            <p style={{fontSize:10,fontWeight:700,letterSpacing:'.18em',textTransform:'uppercase',color:MUTED}}>Todos os Passeios</p>
+            <span style={{fontSize:10,color:MUTED}}>{filtered.length} disponíveis</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {list.map((t) =>
-            <div key={t.id} style={{ background: WHITE, borderRadius: 18, overflow: 'hidden',
-              display: 'flex', height: 82, cursor: 'pointer',
-              boxShadow: '0 2px 12px rgba(0,0,0,.05)', border: `1px solid ${SANDD}` }}>
-                <div style={{ width: 82, flexShrink: 0 }}>
-                  <Stripe height={82} grad={t.grad} icon={t.icon} iconSize={28} opacity={.55} photo={t.photo} photoPos={t.photoPos} />
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {filtered.map(t=>(
+              <div key={t.id} onClick={()=>go('detail',{locId,tourId:t.id})}
+                style={{background:WHITE,borderRadius:18,overflow:'hidden',display:'flex',height:82,cursor:'pointer',boxShadow:'0 2px 12px rgba(0,0,0,.05)',border:`1px solid ${SANDD}`}}>
+                <div style={{width:82,flexShrink:0}}><Stripe height={82} grad={t.grad} icon={t.icon} iconSize={28} opacity={.55} photo={t.photo} photoPos={t.photoPos}/></div>
+                <div style={{flex:1,padding:'10px 12px',display:'flex',flexDirection:'column',justifyContent:'center',gap:3,minWidth:0}}>
+                  <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                    <span style={{fontSize:9,color:loc.accent,fontWeight:700,letterSpacing:'.08em'}}>{t.cat}</span>
+                    <span style={{fontSize:9,color:SANDD}}>· {t.dur}</span>
+                  </div>
+                  <h4 style={{fontSize:13,fontWeight:600,color:DARK,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.name}</h4>
+                  <Stars n={5} size={9}/>
                 </div>
-                <div style={{ flex: 1, padding: '10px 12px', display: 'flex', flexDirection: 'column',
-                justifyContent: 'center', gap: 3, minWidth: 0 }}>
-                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                    <span style={{ fontSize: 9, color: loc.accent, fontWeight: 700, letterSpacing: '.08em' }}>{t.cat}</span>
-                    <span style={{ fontSize: 9, color: SANDD }}>· {t.dur}</span>
+                <div style={{padding:'10px 14px',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'flex-end',gap:4,flexShrink:0}}>
+                  <div style={{textAlign:'right'}}>
+                    {t.priceShared
+                      ?<><div style={{fontSize:8.5,color:MUTED}}>a partir de</div><div style={{fontFamily:'"Cormorant Garamond",serif',fontSize:17,fontWeight:600,color:DARK}}>R$ {t.priceShared}</div><div style={{fontSize:8.5,color:MUTED}}>/pax</div></>
+                      :<><div style={{fontSize:8.5,color:MUTED}}>privativo</div><div style={{fontFamily:'"Cormorant Garamond",serif',fontSize:17,fontWeight:600,color:DARK}}>R$ {t.pricePrivate?.toLocaleString('pt-BR')}</div></>}
                   </div>
-                  <h4 style={{ fontSize: 13, fontWeight: 600, color: DARK, lineHeight: 1.2,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</h4>
-                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                    <Stars rating={4.8} size={9} /><span style={{ fontSize: 9.5, color: MUTED }}>4.8</span>
-                  </div>
-                </div>
-                <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column',
-                justifyContent: 'center', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                  <div style={{ textAlign: 'right' }}>
-                    {t.priceShared ?
-                  <><div style={{ fontSize: 8.5, color: MUTED }}>a partir de</div>
-                          <div style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 17, fontWeight: 600, color: DARK }}>R$ {t.priceShared}</div>
-                          <div style={{ fontSize: 8.5, color: MUTED }}>/pax</div></> :
-                  <><div style={{ fontSize: 8.5, color: MUTED }}>privativo</div>
-                          <div style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 17, fontWeight: 600, color: DARK }}>R$ {t.pricePrivate?.toLocaleString('pt-BR')}</div></>
-                  }
-                  </div>
-                  <div style={{ width: 26, height: 26, borderRadius: 13, background: `${loc.accent}22`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, color: loc.accent, fontWeight: 700 }}>→</div>
+                  <div style={{width:26,height:26,borderRadius:13,background:`${loc.accent}22`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,color:loc.accent,fontWeight:700}}>→</div>
                 </div>
               </div>
-            )}
+            ))}
           </div>
         </div>
 
-        {/* Gamification */}
-        <div style={{ padding:'0 18px', marginBottom:16 }}>
-          <p style={{ fontSize:10, fontWeight:700, letterSpacing:'.18em', textTransform:'uppercase', color:MUTED, marginBottom:10 }}>🎯 Programa de Fidelidade</p>
-          <GamificationCard/>
+        {/* Cashback / Gamification */}
+        <div style={{padding:'0 18px',marginBottom:16}}>
+          <p style={{fontSize:10,fontWeight:700,letterSpacing:'.18em',textTransform:'uppercase',color:MUTED,marginBottom:10}}>🎯 Programa de Fidelidade</p>
+          <div style={{borderRadius:16,overflow:'hidden',background:'linear-gradient(135deg,#0d2d3d 0%,#1e6e8a 60%,#e07b3a 100%)',padding:'14px 16px',position:'relative'}}>
+            <div style={{position:'absolute',inset:0,backgroundImage:'repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 14px)'}}/>
+            <div style={{position:'relative',display:'flex',alignItems:'center',gap:12,marginBottom:12}}>
+              <div style={{width:44,height:44,borderRadius:22,background:'rgba(255,255,255,.15)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>🎁</div>
+              <div style={{flex:1}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                  <span style={{background:ORANGE,borderRadius:8,padding:'2px 7px',fontSize:9,fontWeight:800,color:WHITE}}>CASHBACK</span>
+                  <span style={{fontSize:10,color:'rgba(255,255,255,.6)'}}>Programa de fidelidade</span>
+                </div>
+                <p style={{fontSize:12,color:WHITE,fontWeight:600,lineHeight:1.4}}>10% de cashback em todos os passeios e transfers</p>
+                <p style={{fontSize:10,color:'rgba(255,255,255,.55)',marginTop:3}}>Válido por 3 anos • Acumule e use nas próximas viagens</p>
+              </div>
+            </div>
+            <div style={{position:'relative',background:'rgba(255,255,255,.1)',borderRadius:10,padding:'8px 12px',display:'flex',gap:8,alignItems:'center'}}>
+              <span style={{fontSize:14}}>⭐</span>
+              <span style={{fontSize:11,color:'rgba(255,255,255,.7)',flex:1}}>Complete 3 passeios e suba para o nível Veterano</span>
+            </div>
+          </div>
         </div>
 
         {/* Concierge */}
-        <div style={{ height:1, background:SANDD, margin:'0 18px 20px', opacity:.5 }}/>
-        <ConciergeSection locId={locId}/>
-
-        {/* Reviews scroll */}
-        <div style={{ padding:'0 18px', marginBottom:16 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-            <p style={{ fontSize:10, fontWeight:700, letterSpacing:'.18em', textTransform:'uppercase', color:MUTED }}>⭐ Avaliações Reais</p>
-            <span style={{ fontSize:10, color:'#34B76D', fontWeight:600 }}>TripAdvisor</span>
+        <div style={{height:1,background:SANDD,margin:'0 18px 20px',opacity:.5}}/>
+        <div style={{padding:'0 18px',marginBottom:20}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+            <div>
+              <p style={{fontSize:10,fontWeight:700,letterSpacing:'.18em',textTransform:'uppercase',color:MUTED}}>🛎️ Concierge Explore</p>
+              <p style={{fontSize:12,color:DARK,fontWeight:600,marginTop:2}}>Recomendações exclusivas</p>
+            </div>
+            <div style={{background:`${ORANGE}18`,border:`1px solid ${ORANGE}40`,borderRadius:10,padding:'4px 10px',fontSize:9.5,color:ORANGE,fontWeight:700}}>CUPOM INCLUSO</div>
           </div>
-          <div style={{ display:'flex', gap:12, overflowX:'auto' }}>
-            {TA_REVIEWS.map((r,i)=><ReviewCard key={i} review={r}/>)}
-            <div style={{ width:8, flexShrink:0 }}/>
+          <div style={{display:'flex',gap:6,marginBottom:12}}>
+            {['pousadas','restaurantes'].map(t=>(
+              <button key={t} onClick={()=>setConciergeTab(t)} style={{padding:'6px 14px',borderRadius:20,border:`1.5px solid ${conciergeTab===t?TEAL:SANDD}`,background:conciergeTab===t?TEAL:WHITE,color:conciergeTab===t?WHITE:MUTED,fontSize:11,fontWeight:500}}>
+                {t==='pousadas'?'🏡 Pousadas':'🍽️ Restaurantes'}
+              </button>
+            ))}
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:9}}>
+            {(cd[conciergeTab]||[]).map((item,i)=>(
+              <div key={i} style={{background:WHITE,borderRadius:14,padding:'12px 14px',border:`1px solid ${SANDD}`,display:'flex',alignItems:'flex-start',gap:10,cursor:'pointer'}}>
+                <div style={{width:38,height:38,borderRadius:19,background:SANDL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{item.type}</div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12.5,fontWeight:700,color:DARK,marginBottom:2}}>{item.name}</div>
+                  <div style={{fontSize:11,color:MUTED,lineHeight:1.5,marginBottom:6}}>{item.desc}</div>
+                  <div style={{display:'inline-flex',alignItems:'center',gap:5,background:`${ORANGE}15`,border:`1px solid ${ORANGE}30`,borderRadius:8,padding:'3px 8px'}}>
+                    <span style={{fontSize:9,color:ORANGE,fontWeight:700}}>CUPOM</span>
+                    <span style={{fontSize:10,fontFamily:'monospace',fontWeight:700,color:ORANGE,letterSpacing:'.06em'}}>{item.cupom}</span>
+                  </div>
+                </div>
+                <span style={{fontSize:13,color:TEAL,fontWeight:700,flexShrink:0}}>→</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div style={{ height:20 }}/>
+        {/* Reviews */}
+        <div style={{paddingLeft:18,marginBottom:20}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingRight:18,marginBottom:12}}>
+            <p style={{fontSize:10,fontWeight:700,letterSpacing:'.18em',textTransform:'uppercase',color:MUTED}}>⭐ Avaliações TripAdvisor</p>
+            <span style={{fontSize:10,color:'#34B76D',fontWeight:600}}>4 avaliações</span>
+          </div>
+          <div style={{display:'flex',gap:12,overflowX:'auto',paddingRight:18}}>
+            {TA_REVIEWS.map((r,i)=>(
+              <div key={i} style={{background:WHITE,borderRadius:16,padding:'13px 14px',border:`1px solid ${SANDD}`,flexShrink:0,width:260}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                  <div style={{width:32,height:32,borderRadius:16,background:TEALP,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,color:TEAL,flexShrink:0}}>{r.avatar}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:12,fontWeight:600,color:DARK}}>{r.name}</div>
+                    <div style={{display:'flex',alignItems:'center',gap:5}}><Stars n={r.stars} size={9}/><span style={{fontSize:9,color:MUTED}}>{r.date}</span></div>
+                  </div>
+                  <div style={{width:20,height:20,borderRadius:10,background:'#34B76D',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10}}>🦉</div>
+                </div>
+                <p style={{fontSize:11,color:DARK,fontWeight:600,marginBottom:4}}>{r.title}</p>
+                <p style={{fontSize:11,color:MUTED,lineHeight:1.6}}>{r.text}</p>
+              </div>
+            ))}
+            <div style={{width:8,flexShrink:0}}/>
+          </div>
+        </div>
+        <div style={{height:20}}/>
       </div>
       <BottomBar active={0} accent={loc.accent}/>
     </div>
   );
 }
 
-// ── SCREEN 5: TOUR DETAIL ─────────────────────────────────────────────
-function DetailScreen({ locId, tourId }) {
-  const loc = LOCATIONS[locId];
-  const tour = loc.tours.find((t) => t.id === tourId) || loc.tours[0];
-  const [ptype, setPtype] = useState(tour.priceShared ? 'shared' : 'private');
+// ── SCREEN: DETAIL ─────────────────────────────────────────────
+function DetailScreen({go,back,locId,tourId,setPriceType,priceType}){
+  const loc=LOCATIONS[locId];
+  const tour=loc.tours.find(t=>t.id===tourId)||loc.tours[0];
+  const [ptype,setPtype]=useState(tour.priceShared?'shared':'private');
+  const price=ptype==='shared'?tour.priceShared:tour.pricePrivate;
+  const cashback=Math.round((price||0)*.1);
 
-  return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: SANDL, position: 'relative' }}>
-      <div style={{ position: 'relative', flexShrink: 0 }}>
-        <Stripe height={268} grad={tour.grad} icon={tour.icon} iconSize={110} opacity={.22} photo={tour.photo} photoPos={tour.photoPos} />
-        <div style={{ position: 'absolute', inset: 0,
-          background: `linear-gradient(to top,${SANDL} 0%,rgba(240,227,200,.15) 50%,transparent 100%)` }} />
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0 }}><StatusBar light /></div>
-        <button style={{ position: 'absolute', top: 57, left: 18, width: 38, height: 38, borderRadius: 19,
-          background: 'rgba(255,255,255,.22)', backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255,255,255,.35)', color: WHITE, fontSize: 17,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>←</button>
-        <button style={{ position: 'absolute', top: 57, right: 18, width: 38, height: 38, borderRadius: 19,
-          background: 'rgba(255,255,255,.22)', backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255,255,255,.35)', color: WHITE, fontSize: 17,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>♡</button>
-        {/* Location badge */}
-        <div style={{ position: 'absolute', bottom: 24, left: 18, display: 'flex', gap: 6 }}>
-          <div style={{ background: loc.accent, borderRadius: 20, padding: '4px 10px',
-            fontSize: 9.5, color: WHITE, fontWeight: 700 }}>{loc.name}</div>
-          <div style={{ background: 'rgba(13,31,39,.45)', backdropFilter: 'blur(8px)',
-            borderRadius: 20, padding: '4px 10px', fontSize: 9.5, color: WHITE, fontWeight: 500 }}>{tour.cat}</div>
+  return(
+    <div className="screen slide-in">
+      <div className="island"/>
+      <div style={{position:'relative',flexShrink:0}}>
+        <Stripe height={268} grad={tour.grad} icon={tour.icon} iconSize={110} opacity={.22} photo={tour.photo} photoPos={tour.photoPos}/>
+        <div style={{position:'absolute',inset:0,background:`linear-gradient(to top,${SANDL} 0%,rgba(240,227,200,.15) 50%,transparent 100%)`}}/>
+        <div style={{position:'absolute',top:0,left:0,right:0}}>
+          <div className="island"/>
+          <StatusBar light onBack={back}/>
+        </div>
+        <button style={{position:'absolute',top:57,right:18,width:38,height:38,borderRadius:19,background:'rgba(255,255,255,.22)',backdropFilter:'blur(12px)',border:'1px solid rgba(255,255,255,.35)',color:WHITE,fontSize:17,display:'flex',alignItems:'center',justifyContent:'center'}}>♡</button>
+        <div style={{position:'absolute',bottom:24,left:18,display:'flex',gap:6}}>
+          <div style={{background:loc.accent,borderRadius:20,padding:'4px 10px',fontSize:9.5,color:WHITE,fontWeight:700}}>{loc.name}</div>
+          <div style={{background:'rgba(13,31,39,.45)',backdropFilter:'blur(8px)',borderRadius:20,padding:'4px 10px',fontSize:9.5,color:WHITE,fontWeight:500}}>{tour.cat}</div>
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 96 }}>
-        <div style={{ padding: '6px 22px 0' }}>
-          <h2 style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 28, fontWeight: 600,
-            color: DARK, lineHeight: 1.05, marginBottom: 8 }}>{tour.name}</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
-            <Stars rating={4.9} size={11} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: DARK }}>4.9</span>
-            <span style={{ fontSize: 11, color: MUTED }}>(128 avaliações)</span>
-            <span style={{ width: 3, height: 3, borderRadius: '50%', background: SANDD, flexShrink: 0 }} />
-            <span style={{ fontSize: 11, color: MUTED }}>⏱ {tour.dur}</span>
+      <div className="screen-scroll" style={{paddingBottom:96}}>
+        <div style={{padding:'6px 22px 0'}}>
+          <h2 style={{fontFamily:'"Cormorant Garamond",serif',fontSize:28,fontWeight:600,color:DARK,lineHeight:1.05,marginBottom:8}}>{tour.name}</h2>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:13}}>
+            <Stars/><span style={{fontSize:12,fontWeight:700,color:DARK}}>4.9</span>
+            <span style={{fontSize:11,color:MUTED}}>(128 avaliações)</span>
+            <span style={{width:3,height:3,borderRadius:'50%',background:SANDD,flexShrink:0}}/>
+            <span style={{fontSize:11,color:MUTED}}>⏱ {tour.dur}</span>
           </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
-            {tour.tags.map((tag) =>
-            <span key={tag} style={{ padding: '4px 10px', borderRadius: 20,
-              background: `${loc.accent}18`, border: `1px solid ${loc.accent}30`,
-              color: loc.accent, fontSize: 10, fontWeight: 600 }}>{tag}</span>
-            )}
+          <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:16}}>
+            {tour.tags.map(tag=>(
+              <span key={tag} style={{padding:'4px 10px',borderRadius:20,background:`${loc.accent}18`,border:`1px solid ${loc.accent}30`,color:loc.accent,fontSize:10,fontWeight:600}}>{tag}</span>
+            ))}
           </div>
-          <div style={{ height: 1, background: SANDD, marginBottom: 14, opacity: .6 }} />
-          <p style={{ fontSize: 13, lineHeight: 1.8, color: MUTED, marginBottom: 16 }}>{tour.desc}</p>
+          <div style={{height:1,background:SANDD,marginBottom:14,opacity:.6}}/>
+          <p style={{fontSize:13,lineHeight:1.8,color:MUTED,marginBottom:16}}>{tour.desc}</p>
 
-          <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: loc.accent, marginBottom: 9 }}>Horários</p>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            {tour.times.map((t) =>
-            <div key={t} style={{ padding: '7px 16px', borderRadius: 11,
-              background: `${loc.accent}18`, border: `1.5px solid ${loc.accent}50`,
-              fontSize: 12, fontWeight: 700, color: loc.accent }}>{t}</div>
-            )}
+          <p style={{fontSize:9.5,fontWeight:700,letterSpacing:'.14em',textTransform:'uppercase',color:loc.accent,marginBottom:9}}>Horários Disponíveis</p>
+          <div style={{display:'flex',gap:8,marginBottom:16}}>
+            {tour.times.map(t=>(<div key={t} style={{padding:'7px 16px',borderRadius:11,background:`${loc.accent}18`,border:`1.5px solid ${loc.accent}50`,fontSize:12,fontWeight:700,color:loc.accent}}>{t}</div>))}
           </div>
 
-          <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: loc.accent, marginBottom: 9 }}>Tipo de Passeio</p>
-          <div style={{ display: 'flex', gap: 9, marginBottom: 16 }}>
-            {[
-            tour.priceShared && { key: 'shared', badge: 'COMPARTILHADO', price: tour.priceShared, note: 'por pessoa' },
-            tour.pricePrivate && { key: 'private', badge: 'PRIVATIVO', price: tour.pricePrivate, note: 'até 4–8 pax' }].
-            filter(Boolean).map((opt) =>
-            <button key={opt.key} onClick={() => setPtype(opt.key)} style={{
-              flex: 1, padding: '11px 12px', borderRadius: 14, textAlign: 'left', cursor: 'pointer',
-              border: `2px solid ${ptype === opt.key ? loc.accent : SANDD}`,
-              background: ptype === opt.key ? `${loc.accent}18` : WHITE
-            }}>
-                <div style={{ fontSize: 8.5, fontWeight: 800, color: ptype === opt.key ? loc.accent : MUTED, letterSpacing: '.1em', marginBottom: 3 }}>{opt.badge}</div>
-                <div style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 19, fontWeight: 600, color: DARK }}>
-                  R$ {opt.price.toLocaleString('pt-BR')}
-                </div>
-                <div style={{ fontSize: 9, color: MUTED, marginTop: 1 }}>{opt.note}</div>
+          <p style={{fontSize:9.5,fontWeight:700,letterSpacing:'.14em',textTransform:'uppercase',color:loc.accent,marginBottom:9}}>Tipo de Passeio</p>
+          <div style={{display:'flex',gap:9,marginBottom:16}}>
+            {[tour.priceShared&&{key:'shared',badge:'COMPARTILHADO',price:tour.priceShared,note:'por pessoa'},
+              tour.pricePrivate&&{key:'private',badge:'PRIVATIVO',price:tour.pricePrivate,note:'até 4–8 pax'}
+            ].filter(Boolean).map(opt=>(
+              <button key={opt.key} onClick={()=>setPtype(opt.key)} style={{flex:1,padding:'11px 12px',borderRadius:14,textAlign:'left',border:`2px solid ${ptype===opt.key?loc.accent:SANDD}`,background:ptype===opt.key?`${loc.accent}18`:WHITE}}>
+                <div style={{fontSize:8.5,fontWeight:800,color:ptype===opt.key?loc.accent:MUTED,letterSpacing:'.1em',marginBottom:3}}>{opt.badge}</div>
+                <div style={{fontFamily:'"Cormorant Garamond",serif',fontSize:19,fontWeight:600,color:DARK}}>R$ {opt.price.toLocaleString('pt-BR')}</div>
+                <div style={{fontSize:9,color:MUTED,marginTop:1}}>{opt.note}</div>
               </button>
-            )}
+            ))}
           </div>
 
-          <div style={{ padding: '14px', background: WHITE, borderRadius: 16, border: `1px solid ${SANDD}` }}>
-            <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: MUTED, marginBottom: 10 }}>Incluso no Passeio</p>
-            {['Guia certificado', 'Transporte 4×4', 'Água e protetor', 'Seguro incluso'].map((item) =>
-            <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: `1px solid ${SANDD}40` }}>
-                <div style={{ width: 18, height: 18, borderRadius: 9, background: `${loc.accent}20`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 9, color: loc.accent, fontWeight: 700, flexShrink: 0 }}>✓</div>
-                <span style={{ fontSize: 12, color: DARK }}>{item}</span>
+          {/* Incluso */}
+          <div style={{padding:'14px',background:WHITE,borderRadius:16,border:`1px solid ${SANDD}`,marginBottom:16}}>
+            <p style={{fontSize:9.5,fontWeight:700,letterSpacing:'.14em',textTransform:'uppercase',color:MUTED,marginBottom:10}}>Incluso no Passeio</p>
+            {['Guia certificado','Transporte 4×4','Água e protetor','Seguro incluso'].map(item=>(
+              <div key={item} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',borderBottom:`1px solid ${SANDD}40`}}>
+                <div style={{width:18,height:18,borderRadius:9,background:`${loc.accent}20`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,color:loc.accent,fontWeight:700,flexShrink:0}}>✓</div>
+                <span style={{fontSize:12,color:DARK}}>{item}</span>
               </div>
-            )}
+            ))}
           </div>
-        </div>
-        {/* Cashback banner */}
-        <div style={{ padding: '0 22px' }}>
-          <CashbackBanner />
-        </div>
 
-        {/* Reviews */}
-        <div style={{ padding: '0 22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: MUTED }}>O que dizem os viajantes</p>
-            <TripAdvisorBadge compact={true} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {TA_REVIEWS.slice(0, 2).map((r, i) =>
-            <div key={i} style={{ background: WHITE, borderRadius: 14, padding: '12px 14px', border: `1px solid ${SANDD}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 14, background: TEALP,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, fontWeight: 700, color: TEAL, flexShrink: 0 }}>{r.avatar}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11.5, fontWeight: 600, color: DARK }}>{r.name}</div>
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <span style={{ color: ORANGE, fontSize: 8 }}>★★★★★</span>
-                      <span style={{ fontSize: 9, color: MUTED }}>{r.date}</span>
-                    </div>
-                  </div>
-                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#34B76D',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>🦉</div>
-                </div>
-                <p style={{ fontSize: 11, fontWeight: 600, color: DARK, marginBottom: 3 }}>{r.title}</p>
-                <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.6 }}>{r.text}</p>
+          {/* Cashback */}
+          <div style={{borderRadius:14,background:'linear-gradient(135deg,#0d2d3d,#1e6e8a)',padding:'13px 16px',marginBottom:16,display:'flex',alignItems:'center',gap:12}}>
+            <span style={{fontSize:24}}>🎁</span>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+                <span style={{background:ORANGE,borderRadius:6,padding:'2px 7px',fontSize:8.5,fontWeight:800,color:WHITE}}>CASHBACK</span>
               </div>
-            )}
-          </div>
-        </div>
-
-        <div style={{ height: 20 }} />
-      </div>
-
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 22px 32px',
-        background: `linear-gradient(to top,${SANDL} 65%,transparent)` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: 10, color: MUTED, marginBottom: 2 }}>Total selecionado</div>
-            <div style={{ fontFamily: '"Cormorant Garamond",serif', fontSize: 26, fontWeight: 600, color: DARK }}>
-              R$ {(ptype === 'shared' ? tour.priceShared : tour.pricePrivate)?.toLocaleString('pt-BR')}
+              <p style={{fontSize:11.5,color:WHITE,fontWeight:600}}>Você vai ganhar <span style={{color:'#f5c060'}}>R$ {cashback}</span> de volta nesse passeio</p>
+              <p style={{fontSize:10,color:'rgba(255,255,255,.5)',marginTop:2}}>Válido por 3 anos • Use em futuros passeios</p>
             </div>
           </div>
-          <button style={{ background: `linear-gradient(135deg,${loc.accent},${loc.accentLight})`,
-            color: WHITE, border: 'none', borderRadius: 16, padding: '15px 24px',
-            fontSize: 13, fontWeight: 700, fontFamily: 'Outfit,sans-serif', cursor: 'pointer',
-            boxShadow: `0 10px 28px ${loc.accent}44` }}>
+
+          {/* Reviews */}
+          <div style={{marginBottom:16}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+              <p style={{fontSize:9.5,fontWeight:700,letterSpacing:'.14em',textTransform:'uppercase',color:MUTED}}>O que dizem os viajantes</p>
+              <span style={{fontSize:9,color:'#34B76D',fontWeight:700,display:'flex',alignItems:'center',gap:4}}>🦉 TripAdvisor</span>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {TA_REVIEWS.slice(0,2).map((r,i)=>(
+                <div key={i} style={{background:WHITE,borderRadius:14,padding:'12px 14px',border:`1px solid ${SANDD}`}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                    <div style={{width:28,height:28,borderRadius:14,background:TEALP,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:TEAL,flexShrink:0}}>{r.avatar}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:11.5,fontWeight:600,color:DARK}}>{r.name}</div>
+                      <div style={{display:'flex',gap:4,alignItems:'center'}}><Stars n={5} size={8}/><span style={{fontSize:9,color:MUTED}}>{r.date}</span></div>
+                    </div>
+                    <div style={{width:18,height:18,borderRadius:9,background:'#34B76D',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9}}>🦉</div>
+                  </div>
+                  <p style={{fontSize:11,fontWeight:600,color:DARK,marginBottom:3}}>{r.title}</p>
+                  <p style={{fontSize:11,color:MUTED,lineHeight:1.6}}>{r.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{height:20}}/>
+        </div>
+      </div>
+
+      <div style={{position:'absolute',bottom:0,left:0,right:0,padding:'14px 22px 32px',background:`linear-gradient(to top,${SANDL} 65%,transparent)`}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div>
+            <div style={{fontSize:10,color:MUTED,marginBottom:2}}>Total selecionado</div>
+            <div style={{fontFamily:'"Cormorant Garamond",serif',fontSize:26,fontWeight:600,color:DARK}}>R$ {price?.toLocaleString('pt-BR')}</div>
+          </div>
+          <button onClick={()=>go('datepicker',{locId,tourId:tour.id,ptype,price})}
+            style={{background:`linear-gradient(135deg,${loc.accent},${loc.accentLight})`,color:WHITE,border:'none',borderRadius:16,padding:'15px 24px',fontSize:13,fontWeight:700,boxShadow:`0 10px 28px ${loc.accent}44`}}>
             Escolher Data →
           </button>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }
 
-// ── APP ───────────────────────────────────────────────────────────────
-function App() {
-  const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
-  const [tweaksOpen, setTweaksOpen] = useState(false);
+// ── SCREEN: DATE PICKER ────────────────────────────────────────
+function DateScreen({go,back,locId,tourId,ptype,price}){
+  const loc=LOCATIONS[locId];
+  const tour=loc.tours.find(t=>t.id===tourId)||loc.tours[0];
+  const [selDay,setSelDay]=useState(26);
+  const [selTime,setSelTime]=useState(tour.times[0]);
+  const [travelers,setTravelers]=useState(2);
+  const days=[null,null,null];
+  for(let d=1;d<=30;d++)days.push(d);
+  const avail=[19,20,21,23,25,26,27,28,29,30];
+  const wdays=['D','S','T','Q','Q','S','S'];
+  const total=(price||tour.priceShared||tour.pricePrivate||0)*(ptype==='shared'?travelers:1);
 
-  useEffect(() => {
-    const h = (e) => {
-      if (e.data?.type === '__activate_edit_mode') setTweaksOpen(true);
-      if (e.data?.type === '__deactivate_edit_mode') setTweaksOpen(false);
-    };
-    window.addEventListener('message', h);
-    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
-    return () => window.removeEventListener('message', h);
-  }, []);
+  return(
+    <div className="screen slide-in">
+      <div className="island"/>
+      <StatusBar onBack={back} title="Selecionar Data"/>
+      <div className="screen-scroll" style={{paddingBottom:100,padding:'0 20px'}}>
+        {/* Tour summary chip */}
+        <div style={{display:'flex',alignItems:'center',gap:8,background:`${loc.accent}15`,borderRadius:12,padding:'8px 12px',marginBottom:16}}>
+          <span style={{fontSize:18}}>{tour.icon}</span>
+          <div>
+            <div style={{fontSize:12,fontWeight:600,color:DARK}}>{tour.name}</div>
+            <div style={{fontSize:10,color:loc.accent,fontWeight:500}}>{ptype==='shared'?'Compartilhado':'Privativo'} · {loc.name}</div>
+          </div>
+        </div>
 
-  function upd(k, v) {
-    const n = { ...tweaks, [k]: v };
-    setTweaks(n);
-    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: n }, '*');
+        {/* Calendar */}
+        <div style={{background:WHITE,borderRadius:22,padding:'16px 14px',border:`1px solid ${SANDD}`,marginBottom:16}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+            <span style={{fontFamily:'"Cormorant Garamond",serif',fontSize:19,fontWeight:600,color:DARK}}>Abril 2026</span>
+            <div style={{display:'flex',gap:7}}>
+              {['‹','›'].map(a=>(<button key={a} style={{width:30,height:30,borderRadius:15,border:`1px solid ${SANDD}`,background:'transparent',fontSize:14,color:MUTED}}>{a}</button>))}
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:4}}>
+            {wdays.map((d,i)=>(<div key={i} style={{textAlign:'center',fontSize:9.5,fontWeight:600,color:MUTED,paddingBottom:5}}>{d}</div>))}
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2}}>
+            {days.map((d,i)=>{
+              if(!d)return <div key={i}/>;
+              const isAvail=avail.includes(d),isPast=d<19,isSel=d===selDay,isToday=d===18;
+              return(
+                <button key={i} onClick={()=>isAvail&&setSelDay(d)} style={{
+                  height:38,width:'100%',borderRadius:19,border:'none',
+                  background:isSel?loc.accent:isToday?`${loc.accent}20`:'transparent',
+                  color:isSel?WHITE:isPast?`${MUTED}40`:isAvail?DARK:`${MUTED}45`,
+                  fontSize:12.5,fontWeight:isSel||isToday?700:400,fontFamily:'Outfit,sans-serif',
+                  cursor:isAvail?'pointer':'default',position:'relative',
+                }}>
+                  {d}
+                  {isAvail&&!isSel&&!isPast&&(<span style={{position:'absolute',bottom:5,left:'50%',transform:'translateX(-50%)',width:4,height:4,borderRadius:2,background:ORANGE,display:'block'}}/>)}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{marginTop:10,display:'flex',alignItems:'center',gap:6}}>
+            <span style={{width:6,height:6,borderRadius:3,background:ORANGE,flexShrink:0}}/>
+            <span style={{fontSize:10,color:MUTED}}>Datas com disponibilidade</span>
+          </div>
+        </div>
+
+        {/* Time */}
+        <p style={{fontSize:9.5,fontWeight:700,letterSpacing:'.14em',textTransform:'uppercase',color:MUTED,marginBottom:9}}>Horário de Saída</p>
+        <div style={{display:'flex',gap:9,marginBottom:16}}>
+          {tour.times.map(t=>(<button key={t} onClick={()=>setSelTime(t)} style={{padding:'10px 20px',borderRadius:12,border:`2px solid ${selTime===t?loc.accent:SANDD}`,background:selTime===t?loc.accent:WHITE,color:selTime===t?WHITE:DARK,fontSize:13,fontWeight:700}}>{t}</button>))}
+        </div>
+
+        {/* Travelers */}
+        <p style={{fontSize:9.5,fontWeight:700,letterSpacing:'.14em',textTransform:'uppercase',color:MUTED,marginBottom:9}}>Viajantes</p>
+        <div style={{background:WHITE,borderRadius:16,padding:'13px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',border:`1px solid ${SANDD}`,marginBottom:16}}>
+          <div>
+            <div style={{fontSize:13,fontWeight:600,color:DARK}}>Adultos</div>
+            <div style={{fontSize:11,color:MUTED}}>13 anos ou mais</div>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:14}}>
+            <button onClick={()=>setTravelers(Math.max(1,travelers-1))} style={{width:32,height:32,borderRadius:16,border:`1.5px solid ${SANDD}`,background:WHITE,fontSize:18,color:DARK,display:'flex',alignItems:'center',justifyContent:'center'}}>−</button>
+            <span style={{fontSize:18,fontWeight:700,color:DARK,minWidth:22,textAlign:'center'}}>{travelers}</span>
+            <button onClick={()=>setTravelers(travelers+1)} style={{width:32,height:32,borderRadius:16,border:`1.5px solid ${loc.accent}`,background:`${loc.accent}18`,fontSize:18,color:loc.accent,display:'flex',alignItems:'center',justifyContent:'center'}}>+</button>
+          </div>
+        </div>
+
+        {/* Summary */}
+        <div style={{background:WHITE,borderRadius:18,padding:'14px 16px',border:`1px solid ${SANDD}`,marginBottom:16}}>
+          <p style={{fontSize:9.5,fontWeight:700,letterSpacing:'.14em',color:MUTED,textTransform:'uppercase',marginBottom:10}}>Resumo da Reserva</p>
+          {[['Data',`${selDay} de Abril de 2026`],['Horário',selTime],['Viajantes',`${travelers} adulto${travelers>1?'s':''}`],['Modalidade',ptype==='shared'?'Compartilhado':'Privativo']].map(([l,v])=>(
+            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:`1px solid ${SANDD}50`}}>
+              <span style={{fontSize:12,color:MUTED}}>{l}</span>
+              <span style={{fontSize:12,fontWeight:600,color:DARK}}>{v}</span>
+            </div>
+          ))}
+          <div style={{paddingTop:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{fontSize:11,color:MUTED}}>Total estimado</span>
+            <span style={{fontFamily:'"Cormorant Garamond",serif',fontSize:22,fontWeight:600,color:DARK}}>R$ {total.toLocaleString('pt-BR')}</span>
+          </div>
+        </div>
+      </div>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,padding:'12px 20px 38px',background:`linear-gradient(to top,${SANDL} 65%,transparent)`}}>
+        <button onClick={()=>go('confirm',{locId,tourId:tour.id,ptype,price,day:selDay,time:selTime,travelers,total})}
+          style={{width:'100%',background:`linear-gradient(135deg,${loc.accent},${loc.accentLight})`,color:WHITE,border:'none',borderRadius:16,padding:'16px',fontSize:14,fontWeight:700,boxShadow:`0 10px 28px ${loc.accent}38`}}>
+          Confirmar Reserva →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── SCREEN: CONFIRMATION ────────────────────────────────────────
+function ConfirmScreen({go,back,locId,tourId,ptype,price,day,time,travelers,total}){
+  const loc=LOCATIONS[locId];
+  const tour=loc.tours.find(t=>t.id===tourId)||loc.tours[0];
+  const cashback=Math.round((total||0)*.1);
+  const bookingId='EA-'+Math.floor(1000+Math.random()*9000);
+
+  return(
+    <div className="screen slide-in">
+      <div className="island"/>
+      <StatusBar/>
+      <div className="screen-scroll" style={{padding:'0 22px 32px'}}>
+        <div style={{textAlign:'center',padding:'28px 0 24px'}}>
+          <div style={{width:92,height:92,borderRadius:46,margin:'0 auto 16px',background:`linear-gradient(135deg,${loc.accent},${loc.accentLight})`,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 18px 48px ${loc.accent}40`}}>
+            <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+              <path d="M10 21 L18 29 L32 13" stroke="white" strokeWidth="3.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <h2 style={{fontFamily:'"Cormorant Garamond",serif',fontSize:30,fontWeight:600,color:DARK,marginBottom:7}}>Reserva Enviada!</h2>
+          <p style={{fontSize:13,color:MUTED,lineHeight:1.65}}>Confirmaremos em breve por WhatsApp.<br/>Obrigado por escolher a Explore Atins!</p>
+        </div>
+
+        {/* Booking card */}
+        <div style={{background:WHITE,borderRadius:22,overflow:'hidden',border:`1px solid ${SANDD}`,boxShadow:'0 6px 24px rgba(0,0,0,.06)',marginBottom:14}}>
+          <div style={{position:'relative'}}>
+            <Stripe height={96} grad={tour.grad} icon={tour.icon} iconSize={36} opacity={.45} photo={tour.photo} photoPos={tour.photoPos}/>
+            <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,rgba(13,31,39,.6),rgba(13,31,39,.1))',display:'flex',alignItems:'center',padding:'0 18px'}}>
+              <div>
+                <div style={{fontSize:9,color:'rgba(255,255,255,.55)',letterSpacing:'.12em',textTransform:'uppercase',marginBottom:4}}>{tour.cat} · {loc.name}</div>
+                <div style={{fontFamily:'"Cormorant Garamond",serif',fontSize:21,fontWeight:600,color:WHITE}}>{tour.name}</div>
+              </div>
+            </div>
+            <div style={{position:'absolute',top:10,right:12,background:'rgba(0,0,0,.45)',backdropFilter:'blur(8px)',borderRadius:9,padding:'3px 9px',fontSize:9,color:WHITE,fontWeight:700}}>#{bookingId}</div>
+          </div>
+          <div style={{padding:'14px 18px'}}>
+            {[{i:'📅',l:'Data',v:`${day} de Abril de 2026`},{i:'🕘',l:'Horário',v:time},{i:'⏱',l:'Duração',v:tour.dur},{i:'👥',l:'Viajantes',v:`${travelers} adulto${travelers>1?'s':''}`},{i:'🚗',l:'Modalidade',v:ptype==='shared'?'Compartilhado':'Privativo'}].map(item=>(
+              <div key={item.l} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:`1px solid ${SANDD}50`}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:14}}>{item.i}</span><span style={{fontSize:12,color:MUTED}}>{item.l}</span></div>
+                <span style={{fontSize:12,fontWeight:600,color:DARK}}>{item.v}</span>
+              </div>
+            ))}
+            <div style={{paddingTop:14,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span style={{fontSize:10,fontWeight:700,color:MUTED,letterSpacing:'.1em',textTransform:'uppercase'}}>Total Estimado</span>
+              <div style={{textAlign:'right'}}>
+                <div style={{fontFamily:'"Cormorant Garamond",serif',fontSize:28,fontWeight:600,color:DARK}}>R$ {total?.toLocaleString('pt-BR')}</div>
+                <div style={{fontSize:9,color:MUTED}}>sujeito a confirmação</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cashback earned */}
+        <div style={{background:'linear-gradient(135deg,#0d2d3d,#1e6e8a)',borderRadius:16,padding:'13px 16px',marginBottom:14,display:'flex',alignItems:'center',gap:12}}>
+          <span style={{fontSize:24}}>🎁</span>
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+              <span style={{background:ORANGE,borderRadius:6,padding:'2px 7px',fontSize:8.5,fontWeight:800,color:WHITE}}>CASHBACK GANHO</span>
+            </div>
+            <p style={{fontSize:12,color:WHITE,fontWeight:600}}>Você ganhou <span style={{color:'#f5c060'}}>R$ {cashback}</span> de cashback nessa reserva!</p>
+            <p style={{fontSize:10,color:'rgba(255,255,255,.5)',marginTop:2}}>Válido por 3 anos · Use no próximo passeio</p>
+          </div>
+        </div>
+
+        <div style={{background:`${ORANGE}14`,border:`1px solid ${ORANGE}35`,borderRadius:13,padding:'11px 14px',display:'flex',gap:9,marginBottom:16,alignItems:'flex-start'}}>
+          <span style={{fontSize:16}}>💡</span>
+          <p style={{fontSize:11.5,color:'#9a5020',lineHeight:1.6,fontWeight:500}}>Valores finais confirmados pela equipe. Pagamento combinado no local.</p>
+        </div>
+
+        <button style={{width:'100%',background:'#25D366',color:WHITE,border:'none',borderRadius:16,padding:'16px',fontSize:14,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',gap:9,boxShadow:'0 10px 28px rgba(37,211,102,.32)',marginBottom:11}}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Enviar Reserva via WhatsApp
+        </button>
+        <button onClick={()=>go('feed',{locId})} style={{width:'100%',background:'transparent',color:TEAL,border:`1.5px solid ${TEAL}`,borderRadius:16,padding:'13px',fontSize:13,fontWeight:600}}>
+          Ver Mais Passeios
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ─────────────────────────────────────────────────────────
+function App(){
+  const [screen,setScreen]=useState('chooser');
+  const [params,setParams]=useState({});
+  const [stack,setStack]=useState([]);
+  const [goingBack,setGoingBack]=useState(false);
+
+  // Persist last screen
+  useEffect(()=>{
+    const saved=localStorage.getItem('ea_screen');
+    const savedParams=localStorage.getItem('ea_params');
+    if(saved&&saved!=='chooser'){setScreen(saved);if(savedParams)setParams(JSON.parse(savedParams));}
+  },[]);
+
+  function go(newScreen,newParams={}){
+    setGoingBack(false);
+    setStack(s=>[...s,{screen,params}]);
+    setScreen(newScreen);
+    setParams(newParams);
+    localStorage.setItem('ea_screen',newScreen);
+    localStorage.setItem('ea_params',JSON.stringify(newParams));
   }
 
-  const loc = LOCATIONS[tweaks.location] || LOCATIONS.atins;
-  const availTours = loc.tours;
+  function back(){
+    if(stack.length===0){setScreen('chooser');setParams({});return;}
+    setGoingBack(true);
+    const prev=stack[stack.length-1];
+    setStack(s=>s.slice(0,-1));
+    setScreen(prev.screen);
+    setParams(prev.params);
+    localStorage.setItem('ea_screen',prev.screen);
+    localStorage.setItem('ea_params',JSON.stringify(prev.params));
+  }
 
-  const screens = [
-  { label: '01 · Início', sub: 'Escolha sua Base', node: <LocationChooser />, sl: '01 Base Chooser' },
-  { label: '02 · Atins', sub: 'Passeios em Atins', node: <LocationFeed locId="atins" />, sl: '02 Atins' },
-  { label: '03 · Santo Amaro', sub: 'Passeios em Santo Amaro', node: <LocationFeed locId="santoAmaro" />, sl: '03 Santo Amaro' },
-  { label: '04 · Barreirinhas', sub: 'Passeios em Barreirinhas', node: <LocationFeed locId="barreirinhas" />, sl: '04 Barreirinhas' },
-  { label: '05 · Detalhe', sub: 'Tour Detail', node: <DetailScreen locId={tweaks.location} tourId={tweaks.featuredTour} />, sl: '05 Tour Detail' }];
+  const p=params;
 
-
-  return (
-    <>
-      {/* Wordmark */}
-      <div style={{ position: 'fixed', top: 26, left: 44, zIndex: 100,
-        fontFamily: '"Cormorant Garamond",serif',
-        fontSize: 19, color: 'rgba(255,255,255,.5)', letterSpacing: '.04em', userSelect: 'none' }}>
-        Explore <span style={{ color: ORANGE, fontStyle: 'italic' }}>Atins</span>
-        <span style={{ fontSize: 9.5, color: 'rgba(255,255,255,.2)', letterSpacing: '.22em',
-          textTransform: 'uppercase', marginLeft: 14 }}>App Design · 2026</span>
-      </div>
-
-      {/* Canvas */}
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center',
-        padding: '90px 80px 70px', gap: 48, overflowX: 'auto' }}>
-        {screens.map((s, i) =>
-        <div key={i} data-screen-label={s.sl}>
-            <Phone label={s.label} sublabel={s.sub}>{s.node}</Phone>
-          </div>
-        )}
-      </div>
-
-      {/* Tweaks */}
-      <div className={`tweaks-panel ${tweaksOpen ? 'open' : ''}`}>
-        <div className="tweaks-ttl">Tweaks</div>
-        <div className="tweak-row">
-          <span className="tweak-lbl">Base (tela 05)</span>
-          <select className="tweak-sel" value={tweaks.location}
-          onChange={(e) => {
-            const newLoc = e.target.value;
-            const firstTour = LOCATIONS[newLoc].tours[0].id;
-            upd('location', newLoc);
-            setTimeout(() => upd('featuredTour', firstTour), 10);
-          }}>
-            <option value="atins">Atins</option>
-            <option value="santoAmaro">Santo Amaro</option>
-            <option value="barreirinhas">Barreirinhas</option>
-          </select>
-        </div>
-        <div className="tweak-row">
-          <span className="tweak-lbl">Passeio em destaque</span>
-          <select className="tweak-sel" value={tweaks.featuredTour}
-          onChange={(e) => upd('featuredTour', e.target.value)}>
-            {availTours.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </div>
-      </div>
-    </>);
-
+  return(
+    <div className="phone-shell">
+      {screen==='chooser'  && <ChooserScreen go={go}/>}
+      {screen==='feed'     && <FeedScreen go={go} back={back} locId={p.locId||'atins'}/>}
+      {screen==='detail'   && <DetailScreen go={go} back={back} locId={p.locId} tourId={p.tourId} ptype={p.ptype} price={p.price}/>}
+      {screen==='datepicker'&&<DateScreen go={go} back={back} locId={p.locId} tourId={p.tourId} ptype={p.ptype} price={p.price}/>}
+      {screen==='confirm'  && <ConfirmScreen go={go} back={back} locId={p.locId} tourId={p.tourId} ptype={p.ptype} price={p.price} day={p.day} time={p.time} travelers={p.travelers} total={p.total}/>}
+    </div>
+  );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
